@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
+import Providers from '../providers';
 
 export const metadata: Metadata = {
-  title: "Minha aplicação",
-  description: "Minha aplicação Next.js",
+  title: 'Santerra',
+  description: 'Sistema Santerra',
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
