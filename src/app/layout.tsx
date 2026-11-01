@@ -11,10 +11,10 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Santerra',
-    template: '%s | Santerra',
+    default: 'WebUp!',
+    template: '%s | WebUp!',
   },
-  description: 'Sistema Santerra',
+  description: 'Sistemas para mais performance e organização no seu negócio.',
 };
 
 export default function RootLayout({

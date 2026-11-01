@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
             height={44}
             className='rounded-full shadow-lg shadow-brand-900/20 ring-2 ring-white/70'
           />
-          <span className='text-xl font-bold tracking-tight'>Santerra</span>
+          <span className='text-xl font-bold tracking-tight'>WebUp!</span>
         </div>
 
         <div className='relative flex flex-col items-center text-center'>
@@ -35,16 +35,17 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
             />
           </div>
 
-          <h2 className='mt-12 max-w-md text-3xl font-bold leading-tight xl:text-[34px]'>
-            Qualidade de vida no campo com tecnologia e eficiência.
+          <h2 className='mt-12 max-w-md text-balance text-3xl font-bold leading-tight xl:text-[34px]'>
+            Mais performance e organização com os nossos sistemas.
           </h2>
-          <p className='mt-4 max-w-sm text-base leading-relaxed text-white/85'>
-            Gerencie produtores, ações comerciais e a sua equipe em um só lugar.
+          <p className='mt-4 max-w-sm text-balance text-base leading-relaxed text-white/85'>
+            Centralize informações, automatize rotinas e acompanhe os resultados da sua equipe em
+            um só lugar.
           </p>
         </div>
 
         <p className='relative text-sm text-white/75'>
-          © {new Date().getFullYear()} Santerra. Todos os direitos reservados.
+          © {new Date().getFullYear()} WebUp! Todos os direitos reservados.
         </p>
       </aside>
 
@@ -52,7 +53,7 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
         <div className='w-full max-w-[400px]'>
           <div className='mb-10 flex items-center justify-center gap-3 lg:hidden'>
             <Image src='/logo.png' alt='' width={48} height={48} priority />
-            <span className='text-2xl font-bold tracking-tight text-slate-900'>Santerra</span>
+            <span className='text-2xl font-bold tracking-tight text-slate-900'>WebUp!</span>
           </div>
 
           {children}
