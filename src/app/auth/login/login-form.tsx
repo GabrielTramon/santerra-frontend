@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { AuthHeader } from '@/components/auth/auth-header';
+import { AuthSwitchLink } from '@/components/auth/auth-switch-link';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { MailIcon } from '@/components/ui/icons';
@@ -105,6 +106,8 @@ export default function LoginForm({ callbackUrl, initialError }: LoginFormProps)
           Entrar
         </Button>
       </form>
+
+      <AuthSwitchLink question='Ainda não tem uma conta?' href='/auth/sign-up' label='Cadastre-se' />
     </>
   );
 }
