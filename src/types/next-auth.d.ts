@@ -1,6 +1,6 @@
 import type { DefaultSession } from 'next-auth';
 
-type SessionCompany = {
+export type SessionCompany = {
   id: string;
   name: string;
   logo: string | null;
