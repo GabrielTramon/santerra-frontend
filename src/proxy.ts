@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_CALLBACK_URL } from '@/lib/callback-url';
 
 const LOGIN_PATH = '/auth/login';
+const SIGN_UP_PATH = '/auth/sign-up';
 const SELECT_COMPANY_PATH = '/auth/select-company';
 
 function redirectWithCallback(request: NextRequest, path: string) {
@@ -29,7 +30,7 @@ export async function proxy(request: NextRequest) {
   const hasCompany = Boolean(token?.company);
 
   if (pathname.startsWith('/auth')) {
-    if (pathname === LOGIN_PATH && isAuthenticated) {
+    if ((pathname === LOGIN_PATH || pathname === SIGN_UP_PATH) && isAuthenticated) {
       return NextResponse.redirect(
         new URL(hasCompany ? DEFAULT_CALLBACK_URL : SELECT_COMPANY_PATH, request.url),
       );

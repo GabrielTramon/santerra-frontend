@@ -13,8 +13,7 @@ import { Button, buttonStyles } from '@/components/ui/button';
 import { CheckCircleIcon, LockIcon } from '@/components/ui/icons';
 import { PasswordField } from '@/components/ui/password-field';
 import { ApiError, apiRequest } from '@/lib/api';
-
-const MIN_PASSWORD_LENGTH = 8;
+import { MIN_PASSWORD_LENGTH } from '@/lib/password';
 
 const resetPasswordFormSchema = z
   .object({
