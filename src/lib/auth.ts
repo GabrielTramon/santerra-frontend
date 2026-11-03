@@ -1,16 +1,12 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+import type { SessionCompany } from '@/types/next-auth';
+
 import { ApiError, apiRequest } from './api';
 import { LOGIN_ERRORS, type LoginErrorCode } from './auth-errors';
 
 const SESSION_MAX_AGE_IN_SECONDS = 24 * 60 * 60;
-
-type Company = {
-  id: string;
-  name: string;
-  logo: string | null;
-};
 
 type LoginResponse = {
   token: string;
@@ -19,19 +15,19 @@ type LoginResponse = {
     name: string;
     email: string;
   };
-  companies: Company[];
+  companies: SessionCompany[];
 };
 
 type SelectCompanyResponse = {
   token: string;
-  company: Company;
+  company: SessionCompany;
   permissions: string[];
 };
 
 type CompanyAccess = {
   accessToken: string;
   accessTokenExpires: number;
-  company: Company | null;
+  company: SessionCompany | null;
   permissions: string[];
 };
 
