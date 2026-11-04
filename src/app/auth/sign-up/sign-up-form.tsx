@@ -1,97 +1,157 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { type ReactNode, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { useState } from 'react';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import { AuthSwitchLink } from '@/components/auth/auth-switch-link';
-import { Alert } from '@/components/ui/alert';
-import { Button, buttonStyles } from '@/components/ui/button';
-import { BuildingIcon, CheckCircleIcon, MailIcon, UserIcon } from '@/components/ui/icons';
-import { PasswordField } from '@/components/ui/password-field';
-import { TextField } from '@/components/ui/text-field';
+import { buttonStyles } from '@/components/ui/button';
+import { CheckCircleIcon } from '@/components/ui/icons';
 import { ApiError, apiRequest } from '@/lib/api';
 import { DEFAULT_CALLBACK_URL } from '@/lib/callback-url';
-import { MIN_PASSWORD_LENGTH } from '@/lib/password';
 
-const signUpFormSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Informe seu nome'),
-    email: z.string().trim().min(1, 'Informe seu e-mail').pipe(z.email('Informe um e-mail válido')),
-    password: z
-      .string()
-      .min(MIN_PASSWORD_LENGTH, `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
-    passwordConfirmation: z.string().min(1, 'Confirme sua senha'),
-    companyName: z.string().trim().min(1, 'Informe o nome da empresa'),
-  })
-  .refine((values) => values.password === values.passwordConfirmation, {
-    message: 'As senhas não conferem',
-    path: ['passwordConfirmation'],
-  });
+import { AccountStep, type AccountValues } from './account-step';
+import { CompanyStep, type CompanyValues } from './company-step';
+import { PasswordStep, type PasswordValues } from './password-step';
+import { type SignUpStep, SignUpStepper } from './sign-up-stepper';
+import { VerificationStep } from './verification-step';
 
-type SignUpValues = z.output<typeof signUpFormSchema>;
+const EMAIL_NOT_VERIFIED_CODE = 'EMAIL_NOT_VERIFIED';
 
-type FormSectionProps = {
-  title: string;
-  description: string;
-  children: ReactNode;
+type SentCode = {
+  email: string;
+  sentAt: number;
 };
 
-function FormSection({ title, description, children }: FormSectionProps) {
-  return (
-    <section className='flex flex-col gap-5'>
-      <div className='border-b border-slate-200 pb-3'>
-        <h2 className='text-base font-bold text-slate-900'>{title}</h2>
-        <p className='mt-0.5 text-sm text-slate-500'>{description}</p>
-      </div>
-      {children}
-    </section>
-  );
+type EmailVerification = {
+  email: string;
+  token: string;
+};
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 export default function SignUpForm() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [step, setStep] = useState<SignUpStep>('account');
+  const [account, setAccount] = useState<AccountValues>({ name: '', email: '' });
+  const [passwords, setPasswords] = useState<PasswordValues>({
+    password: '',
+    passwordConfirmation: '',
+  });
+  const [company, setCompany] = useState<CompanyValues>({ companyName: '' });
+  const [sentCode, setSentCode] = useState<SentCode | null>(null);
+  const [verification, setVerification] = useState<EmailVerification | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
   const [createdCompanyName, setCreatedCompanyName] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(signUpFormSchema),
-  });
+  const isEmailVerified = verification?.email === account.email;
 
-  async function handleSignUp({ name, email, password, companyName }: SignUpValues) {
-    setErrorMessage(null);
+  function goTo(nextStep: SignUpStep) {
+    setStepError(null);
+    setStep(nextStep);
+  }
+
+  function returnToAccountWithEmailError(message: string) {
+    setEmailError(message);
+    setSentCode(null);
+    setVerification(null);
+    goTo('account');
+  }
+
+  function handleAccountSubmit(values: AccountValues) {
+    setAccount(values);
+    setEmailError(null);
+    goTo('password');
+  }
+
+  async function handlePasswordSubmit(values: PasswordValues) {
+    setPasswords(values);
+
+    if (isEmailVerified) {
+      goTo('company');
+      return;
+    }
+
+    if (sentCode?.email === account.email) {
+      goTo('verification');
+      return;
+    }
+
+    try {
+      await apiRequest<void>('/auth/sign-up/verification-code', {
+        method: 'POST',
+        body: { email: account.email },
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        returnToAccountWithEmailError(error.message);
+        return;
+      }
+
+      if (!(error instanceof ApiError && error.status === 429)) {
+        setStepError(
+          getErrorMessage(error, 'Não foi possível enviar o código agora. Tente novamente.'),
+        );
+        return;
+      }
+    }
+
+    setSentCode({ email: account.email, sentAt: Date.now() });
+    setVerificationNotice(null);
+    goTo('verification');
+  }
+
+  function handleVerified(token: string) {
+    setVerification({ email: account.email, token });
+    setVerificationNotice(null);
+    goTo('company');
+  }
+
+  async function handleCompanySubmit(values: CompanyValues) {
+    setCompany(values);
+    setStepError(null);
 
     try {
       await apiRequest<unknown>('/auth/sign-up', {
         method: 'POST',
-        body: { name, email, password, companyName },
+        body: {
+          ...account,
+          password: passwords.password,
+          companyName: values.companyName,
+          verificationToken: verification?.token ?? '',
+        },
       });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
-        setError('email', { message: error.message });
+        returnToAccountWithEmailError(error.message);
         return;
       }
 
-      setErrorMessage(
-        error instanceof ApiError
-          ? error.message
-          : 'Não foi possível criar sua conta agora. Tente novamente em instantes.',
+      if (error instanceof ApiError && error.code === EMAIL_NOT_VERIFIED_CODE) {
+        setVerification(null);
+        setVerificationNotice(error.message);
+        goTo('verification');
+        return;
+      }
+
+      setStepError(
+        getErrorMessage(error, 'Não foi possível criar sua conta agora. Tente novamente em instantes.'),
       );
       return;
     }
 
-    const result = await signIn('credentials', { email, password, redirect: false });
+    const result = await signIn('credentials', {
+      email: account.email,
+      password: passwords.password,
+      redirect: false,
+    });
 
     if (!result?.ok || result.error) {
-      setCreatedCompanyName(companyName);
+      setCreatedCompanyName(values.companyName);
       return;
     }
 
@@ -117,77 +177,63 @@ export default function SignUpForm() {
 
   return (
     <>
-      <AuthHeader
-        title='Crie sua conta'
-        description='Cadastre seus dados e os da sua empresa. Você será o administrador da empresa.'
-      />
+      <SignUpStepper currentStep={step} />
 
-      <form
-        noValidate
-        onSubmit={handleSubmit(handleSignUp)}
-        className='flex flex-col gap-8 animate-fade-up [animation-delay:80ms]'
-      >
-        {errorMessage && <Alert variant='error'>{errorMessage}</Alert>}
-
-        <FormSection title='Seus dados' description='Você vai usar o e-mail e a senha para entrar.'>
-          <TextField
-            label='Nome'
-            autoComplete='name'
-            placeholder='Seu nome completo'
-            icon={<UserIcon />}
-            error={errors.name?.message}
-            {...register('name')}
+      <div key={step}>
+        {step === 'account' && (
+          <AccountStep
+            defaultValues={account}
+            emailError={emailError}
+            onSubmit={handleAccountSubmit}
           />
+        )}
 
-          <TextField
-            label='E-mail'
-            type='email'
-            autoComplete='email'
-            placeholder='seu@email.com'
-            icon={<MailIcon />}
-            error={errors.email?.message}
-            {...register('email')}
+        {step === 'password' && (
+          <PasswordStep
+            email={account.email}
+            defaultValues={passwords}
+            error={stepError}
+            onBack={(values) => {
+              setPasswords(values);
+              goTo('account');
+            }}
+            onSubmit={handlePasswordSubmit}
           />
+        )}
 
-          <PasswordField
-            label='Senha'
-            autoComplete='new-password'
-            placeholder='Crie uma senha'
-            hint={`Use pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`}
-            error={errors.password?.message}
-            {...register('password')}
+        {step === 'verification' && (
+          <VerificationStep
+            email={account.email}
+            codeSentAt={sentCode?.email === account.email ? sentCode.sentAt : null}
+            isVerified={isEmailVerified}
+            notice={verificationNotice}
+            onCodeSent={(sentAt) => setSentCode({ email: account.email, sentAt })}
+            onVerified={handleVerified}
+            onChangeEmail={() => goTo('account')}
+            onBack={() => goTo('password')}
+            onContinue={() => goTo('company')}
           />
+        )}
 
-          <PasswordField
-            label='Confirmar senha'
-            autoComplete='new-password'
-            placeholder='Repita a senha'
-            error={errors.passwordConfirmation?.message}
-            {...register('passwordConfirmation')}
+        {step === 'company' && (
+          <CompanyStep
+            name={account.name}
+            email={account.email}
+            defaultValues={company}
+            error={stepError}
+            isRedirecting={isRedirecting}
+            onBack={(values) => {
+              setCompany(values);
+              goTo('verification');
+            }}
+            onSubmit={handleCompanySubmit}
           />
-        </FormSection>
+        )}
+      </div>
 
-        <FormSection title='Sua empresa' description='Depois você poderá convidar sua equipe.'>
-          <TextField
-            label='Nome da empresa'
-            autoComplete='organization'
-            placeholder='Nome da sua empresa'
-            icon={<BuildingIcon />}
-            error={errors.companyName?.message}
-            {...register('companyName')}
-          />
-        </FormSection>
-
-        <Button
-          type='submit'
-          loading={isSubmitting || isRedirecting}
-          loadingText={isRedirecting ? 'Entrando...' : 'Criando conta...'}
-        >
-          Criar conta
-        </Button>
-      </form>
-
-      <AuthSwitchLink question='Já tem uma conta?' href='/auth/login' label='Entrar' />
+      {step === 'account' && (
+        <AuthSwitchLink question='Já tem uma conta?' href='/auth/login' label='Entrar' />
+      )}
     </>
   );
 }
