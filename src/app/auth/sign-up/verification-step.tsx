@@ -1,167 +1,57 @@
 'use client';
 
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import { Alert } from '@/components/ui/alert';
 import { CodeInput } from '@/components/ui/code-input';
-import { CheckCircleIcon, MailIcon } from '@/components/ui/icons';
+import { MailIcon } from '@/components/ui/icons';
 import { Spinner } from '@/components/ui/spinner';
-import { ApiError, apiRequest } from '@/lib/api';
 
 import { StepActions } from './step-actions';
+import { CODE_LENGTH, useEmailVerification } from './use-email-verification';
+import { useResendCooldown } from './use-resend-cooldown';
 
-const CODE_LENGTH = 6;
-const RESEND_INTERVAL_IN_SECONDS = 60;
-const MILLISECONDS_PER_SECOND = 1000;
 const CODE_ERROR_ID = 'verification-code-error';
 
-type VerifyEmailResponse = {
-  verificationToken: string;
-};
+const linkButtonClassName =
+  'rounded font-semibold text-brand-600 transition hover:text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-60';
 
 type VerificationStepProps = {
   email: string;
   codeSentAt: number | null;
-  isVerified: boolean;
   notice: string | null;
   onCodeSent: (sentAt: number) => void;
   onVerified: (verificationToken: string) => void;
   onChangeEmail: () => void;
   onBack: () => void;
-  onContinue: () => void;
 };
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof ApiError ? error.message : fallback;
-}
-
-function getSecondsUntilResend(codeSentAt: number | null, now: number): number {
-  if (codeSentAt === null) {
-    return 0;
-  }
-
-  const resendAt = codeSentAt + RESEND_INTERVAL_IN_SECONDS * MILLISECONDS_PER_SECOND;
-
-  return Math.max(0, Math.ceil((resendAt - now) / MILLISECONDS_PER_SECOND));
-}
-
-const linkButtonClassName =
-  'rounded font-semibold text-brand-600 transition hover:text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-60';
 
 export function VerificationStep({
   email,
   codeSentAt,
-  isVerified,
   notice,
   onCodeSent,
   onVerified,
   onChangeEmail,
   onBack,
-  onContinue,
 }: VerificationStepProps) {
-  const codeInputRef = useRef<HTMLDivElement>(null);
-  const [code, setCode] = useState('');
-  const [codeError, setCodeError] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ variant: 'info' | 'success'; text: string } | null>(
-    notice ? { variant: 'info', text: notice } : null,
-  );
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
-  const secondsUntilResend = getSecondsUntilResend(codeSentAt, now);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => setNow(Date.now()), MILLISECONDS_PER_SECOND);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  async function verifyCode(value: string) {
-    if (value.length !== CODE_LENGTH || isVerifying) {
-      return;
-    }
-
-    setIsVerifying(true);
-    setCodeError(null);
-    setMessage(null);
-
-    try {
-      const { verificationToken } = await apiRequest<VerifyEmailResponse>(
-        '/auth/sign-up/verify-email',
-        { method: 'POST', body: { email, code: value } },
-      );
-
-      onVerified(verificationToken);
-    } catch (error) {
-      setCodeError(
-        getErrorMessage(error, 'Não foi possível confirmar o código agora. Tente novamente.'),
-      );
-      setCode('');
-      setIsVerifying(false);
-      codeInputRef.current?.querySelector('input')?.focus();
-    }
-  }
-
-  async function resendCode() {
-    setIsResending(true);
-    setCodeError(null);
-    setMessage(null);
-
-    try {
-      await apiRequest<void>('/auth/sign-up/verification-code', {
-        method: 'POST',
-        body: { email },
-      });
-
-      const sentAt = Date.now();
-
-      onCodeSent(sentAt);
-      setNow(sentAt);
-      setCode('');
-      setMessage({ variant: 'success', text: 'Enviamos um novo código para o seu e-mail.' });
-      codeInputRef.current?.querySelector('input')?.focus();
-    } catch (error) {
-      setMessage(null);
-      setCodeError(
-        getErrorMessage(error, 'Não foi possível reenviar o código agora. Tente novamente.'),
-      );
-    } finally {
-      setIsResending(false);
-    }
-  }
+  const {
+    codeInputRef,
+    code,
+    codeError,
+    message,
+    isVerifying,
+    isResending,
+    changeCode,
+    verifyCode,
+    resendCode,
+  } = useEmailVerification({ email, notice, onCodeSent, onVerified });
+  const secondsUntilResend = useResendCooldown(codeSentAt);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void verifyCode(code);
-  }
-
-  if (isVerified) {
-    return (
-      <>
-        <AuthHeader
-          icon={<CheckCircleIcon className='size-7' />}
-          title='E-mail confirmado'
-          description={
-            <>
-              O e-mail <strong className='font-semibold text-slate-700'>{email}</strong> já foi
-              confirmado. Agora falta só a sua empresa.
-            </>
-          }
-        />
-
-        <form
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            onContinue();
-          }}
-          className='flex flex-col animate-fade-up [animation-delay:80ms]'
-        >
-          <StepActions submitLabel='Continuar' onBack={onBack} />
-        </form>
-      </>
-    );
   }
 
   return (
@@ -193,10 +83,7 @@ export function VerificationStep({
             label='Código de verificação'
             length={CODE_LENGTH}
             value={code}
-            onChange={(value) => {
-              setCode(value);
-              setCodeError(null);
-            }}
+            onChange={changeCode}
             onComplete={(value) => void verifyCode(value)}
             invalid={Boolean(codeError)}
             readOnly={isVerifying}

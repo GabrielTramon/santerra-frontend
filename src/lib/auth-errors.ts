@@ -28,3 +28,10 @@ export function getLoginErrorMessage(code?: string | null): string {
 
   return LOGIN_ERROR_MESSAGES.UNKNOWN;
 }
+
+export class LoginError extends Error {
+  constructor(code?: string | null) {
+    super(getLoginErrorMessage(code));
+    this.name = 'LoginError';
+  }
+}

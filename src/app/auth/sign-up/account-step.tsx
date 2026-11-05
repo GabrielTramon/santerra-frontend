@@ -7,12 +7,13 @@ import { z } from 'zod';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { MailIcon, UserIcon } from '@/components/ui/icons';
 import { TextField } from '@/components/ui/text-field';
+import { emailSchema } from '@/lib/schemas';
 
 import { StepActions } from './step-actions';
 
 const accountStepSchema = z.object({
   name: z.string().trim().min(1, 'Informe seu nome'),
-  email: z.string().trim().min(1, 'Informe seu e-mail').pipe(z.email('Informe um e-mail válido')),
+  email: emailSchema,
 });
 
 export type AccountValues = z.output<typeof accountStepSchema>;

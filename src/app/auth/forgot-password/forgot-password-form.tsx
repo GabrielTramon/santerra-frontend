@@ -11,15 +11,18 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { KeyIcon, MailIcon } from '@/components/ui/icons';
 import { TextField } from '@/components/ui/text-field';
-import { ApiError, apiRequest } from '@/lib/api';
+import { useRequestPasswordReset } from '@/hooks/auth/use-request-password-reset';
+import { getApiErrorMessage } from '@/lib/api';
+import { emailSchema } from '@/lib/schemas';
 
 const forgotPasswordFormSchema = z.object({
-  email: z.string().trim().min(1, 'Informe seu e-mail').pipe(z.email('Informe um e-mail válido')),
+  email: emailSchema,
 });
 
 type ForgotPasswordValues = z.output<typeof forgotPasswordFormSchema>;
 
 export default function ForgotPasswordForm() {
+  const { mutate: requestPasswordReset } = useRequestPasswordReset();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
@@ -30,22 +33,22 @@ export default function ForgotPasswordForm() {
     resolver: zodResolver(forgotPasswordFormSchema),
   });
 
-  async function requestPasswordReset({ email }: ForgotPasswordValues) {
+  async function handleRequestReset({ email }: ForgotPasswordValues) {
     setErrorMessage(null);
 
     try {
-      await apiRequest<void>('/auth/forgot-password', {
-        method: 'POST',
-        body: { email },
-      });
-      setSentTo(email);
+      await requestPasswordReset(email);
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError
-          ? error.message
-          : 'Não foi possível enviar o link agora. Tente novamente em instantes.',
+        getApiErrorMessage(
+          error,
+          'Não foi possível enviar o link agora. Tente novamente em instantes.',
+        ),
       );
+      return;
     }
+
+    setSentTo(email);
   }
 
   if (sentTo) {
@@ -74,7 +77,7 @@ export default function ForgotPasswordForm() {
             variant='secondary'
             loading={isSubmitting}
             loadingText='Reenviando...'
-            onClick={handleSubmit(requestPasswordReset)}
+            onClick={handleSubmit(handleRequestReset)}
           >
             Reenviar link
           </Button>
@@ -95,7 +98,7 @@ export default function ForgotPasswordForm() {
 
       <form
         noValidate
-        onSubmit={handleSubmit(requestPasswordReset)}
+        onSubmit={handleSubmit(handleRequestReset)}
         className='flex flex-col gap-5 animate-fade-up [animation-delay:80ms]'
       >
         {errorMessage && <Alert variant='error'>{errorMessage}</Alert>}

@@ -8,6 +8,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { Alert } from '@/components/ui/alert';
 import { BuildingIcon, CheckIcon } from '@/components/ui/icons';
 import { TextField } from '@/components/ui/text-field';
+import { getInitials } from '@/lib/initials';
 
 import { StepActions } from './step-actions';
 
@@ -26,15 +27,6 @@ type CompanyStepProps = {
   onBack: (values: CompanyValues) => void;
   onSubmit: (values: CompanyValues) => Promise<void>;
 };
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join('');
-}
 
 export function CompanyStep({
   name,
