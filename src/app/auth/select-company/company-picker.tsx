@@ -1,13 +1,15 @@
 'use client';
 
 import type { Session } from 'next-auth';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import { Alert } from '@/components/ui/alert';
 import { BuildingIcon, ChevronRightIcon } from '@/components/ui/icons';
 import { Spinner } from '@/components/ui/spinner';
+import { useSelectCompany } from '@/hooks/auth/use-select-company';
+import { getInitials } from '@/lib/initials';
 
 type CompanyPickerProps = {
   userName: string;
@@ -16,33 +18,24 @@ type CompanyPickerProps = {
   callbackUrl: string;
 };
 
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
-}
-
 export default function CompanyPicker({
   userName,
   companies,
   currentCompanyId,
   callbackUrl,
 }: CompanyPickerProps) {
-  const { update } = useSession();
+  const { mutate: selectCompany } = useSelectCompany();
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [firstName] = userName.split(' ');
 
-  async function selectCompany(companyId: string) {
+  async function handleSelectCompany(companyId: string) {
     setErrorMessage(null);
     setSelectingId(companyId);
 
-    const session = await update({ companyId });
-
-    if (session?.company?.id !== companyId) {
+    try {
+      await selectCompany(companyId);
+    } catch {
       setSelectingId(null);
       setErrorMessage('Não foi possível acessar esta empresa. Tente novamente.');
       return;
@@ -68,7 +61,7 @@ export default function CompanyPicker({
               <button
                 type='button'
                 disabled={selectingId !== null}
-                onClick={() => selectCompany(company.id)}
+                onClick={() => handleSelectCompany(company.id)}
                 className='group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-600/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 disabled:pointer-events-none disabled:opacity-60'
               >
                 <span className='flex size-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-400 to-brand-600 text-base font-bold text-white shadow-md shadow-brand-600/20'>

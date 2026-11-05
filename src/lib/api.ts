@@ -11,6 +11,14 @@ export class ApiError extends Error {
   }
 }
 
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
+
+export function isApiErrorWithStatus(error: unknown, status: number): error is ApiError {
+  return error instanceof ApiError && error.status === status;
+}
+
 type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;

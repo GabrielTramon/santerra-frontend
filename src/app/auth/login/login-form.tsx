@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -14,10 +13,12 @@ import { Button } from '@/components/ui/button';
 import { MailIcon } from '@/components/ui/icons';
 import { PasswordField } from '@/components/ui/password-field';
 import { TextField } from '@/components/ui/text-field';
-import { getLoginErrorMessage } from '@/lib/auth-errors';
+import { useLogin } from '@/hooks/auth/use-login';
+import { getLoginErrorMessage, LoginError } from '@/lib/auth-errors';
+import { emailSchema } from '@/lib/schemas';
 
 const loginFormSchema = z.object({
-  email: z.string().trim().min(1, 'Informe seu e-mail').pipe(z.email('Informe um e-mail válido')),
+  email: emailSchema,
   password: z.string().min(1, 'Informe sua senha'),
 });
 
@@ -27,6 +28,7 @@ type LoginFormProps = {
 };
 
 export default function LoginForm({ callbackUrl, initialError }: LoginFormProps) {
+  const { mutate: login } = useLogin();
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialError ? getLoginErrorMessage(initialError) : null,
   );
@@ -42,14 +44,10 @@ export default function LoginForm({ callbackUrl, initialError }: LoginFormProps)
   async function handleLogin(values: z.output<typeof loginFormSchema>) {
     setErrorMessage(null);
 
-    const result = await signIn('credentials', {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-
-    if (!result?.ok || result.error) {
-      setErrorMessage(getLoginErrorMessage(result?.error));
+    try {
+      await login(values);
+    } catch (error) {
+      setErrorMessage(error instanceof LoginError ? error.message : getLoginErrorMessage());
       return;
     }
 

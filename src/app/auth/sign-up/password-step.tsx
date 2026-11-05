@@ -8,21 +8,12 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { Alert } from '@/components/ui/alert';
 import { PasswordField } from '@/components/ui/password-field';
 import { MIN_PASSWORD_LENGTH } from '@/lib/password';
+import { createPasswordConfirmationSchema } from '@/lib/schemas';
 
 import { PasswordStrength } from './password-strength';
 import { StepActions } from './step-actions';
 
-const passwordStepSchema = z
-  .object({
-    password: z
-      .string()
-      .min(MIN_PASSWORD_LENGTH, `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
-    passwordConfirmation: z.string().min(1, 'Confirme sua senha'),
-  })
-  .refine((values) => values.password === values.passwordConfirmation, {
-    message: 'As senhas não conferem',
-    path: ['passwordConfirmation'],
-  });
+const passwordStepSchema = createPasswordConfirmationSchema('Confirme sua senha');
 
 export type PasswordValues = z.output<typeof passwordStepSchema>;
 

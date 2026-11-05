@@ -12,20 +12,12 @@ import { Alert } from '@/components/ui/alert';
 import { Button, buttonStyles } from '@/components/ui/button';
 import { CheckCircleIcon, LockIcon } from '@/components/ui/icons';
 import { PasswordField } from '@/components/ui/password-field';
-import { ApiError, apiRequest } from '@/lib/api';
+import { useResetPassword } from '@/hooks/auth/use-reset-password';
+import { getApiErrorMessage, isApiErrorWithStatus } from '@/lib/api';
 import { MIN_PASSWORD_LENGTH } from '@/lib/password';
+import { createPasswordConfirmationSchema } from '@/lib/schemas';
 
-const resetPasswordFormSchema = z
-  .object({
-    password: z
-      .string()
-      .min(MIN_PASSWORD_LENGTH, `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
-    passwordConfirmation: z.string().min(1, 'Confirme a nova senha'),
-  })
-  .refine((values) => values.password === values.passwordConfirmation, {
-    message: 'As senhas não conferem',
-    path: ['passwordConfirmation'],
-  });
+const resetPasswordFormSchema = createPasswordConfirmationSchema('Confirme a nova senha');
 
 type ResetPasswordValues = z.output<typeof resetPasswordFormSchema>;
 
@@ -39,6 +31,7 @@ type ResetError = {
 };
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const { mutate: resetPassword } = useResetPassword();
   const [isDone, setIsDone] = useState(false);
   const [resetError, setResetError] = useState<ResetError | null>(null);
   const {
@@ -49,25 +42,23 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resolver: zodResolver(resetPasswordFormSchema),
   });
 
-  async function resetPassword({ password }: ResetPasswordValues) {
+  async function handleResetPassword({ password }: ResetPasswordValues) {
     setResetError(null);
 
     try {
-      await apiRequest<void>('/auth/reset-password', {
-        method: 'POST',
-        body: { token, password },
-      });
-      setIsDone(true);
+      await resetPassword(token, password);
     } catch (error) {
-      setResetError(
-        error instanceof ApiError
-          ? { message: error.message, isInvalidLink: error.status === 404 }
-          : {
-              message: 'Não foi possível salvar a nova senha agora. Tente novamente em instantes.',
-              isInvalidLink: false,
-            },
-      );
+      setResetError({
+        message: getApiErrorMessage(
+          error,
+          'Não foi possível salvar a nova senha agora. Tente novamente em instantes.',
+        ),
+        isInvalidLink: isApiErrorWithStatus(error, 404),
+      });
+      return;
     }
+
+    setIsDone(true);
   }
 
   if (isDone) {
@@ -96,7 +87,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       <form
         noValidate
-        onSubmit={handleSubmit(resetPassword)}
+        onSubmit={handleSubmit(handleResetPassword)}
         className='flex flex-col gap-5 animate-fade-up [animation-delay:80ms]'
       >
         {resetError && (
