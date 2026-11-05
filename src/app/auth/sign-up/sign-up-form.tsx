@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import { AuthSwitchLink } from '@/components/auth/auth-switch-link';
-import { buttonStyles } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { CheckCircleIcon } from '@/components/ui/icons';
 
 import { AccountStep } from './account-step';
@@ -27,7 +27,10 @@ export default function SignUpForm() {
           description={`Sua conta e a empresa ${flow.createdCompanyName} foram criadas, mas não conseguimos entrar automaticamente. Entre com seu e-mail e senha para continuar.`}
         />
 
-        <Link href='/auth/login' className={buttonStyles('primary', 'animate-fade-up')}>
+        <Link
+          href='/auth/login'
+          className={buttonVariants({ size: 'xl', className: 'w-full animate-fade-up' })}
+        >
           Ir para o login
         </Link>
       </>

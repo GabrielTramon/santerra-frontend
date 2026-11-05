@@ -1,46 +1,96 @@
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from 'radix-ui';
 import type { ComponentProps } from 'react';
 
 import { cn } from '@/lib/cn';
 
 import { Spinner } from './spinner';
 
-type ButtonVariant = 'primary' | 'secondary';
+const variants = cva(
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+        outline:
+          'border-border bg-background shadow-xs hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
+        ghost:
+          'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50',
+        destructive:
+          'bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default:
+          'h-9 gap-1.5 px-2.5 in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-6 gap-1 rounded-[min(var(--radius-md),8px)] px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1 rounded-[min(var(--radius-md),10px)] px-2.5 in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5',
+        lg: 'h-10 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xl: 'h-12 gap-2 rounded-xl bg-clip-border px-5 text-[15px] font-semibold duration-200 focus-visible:ring-4 disabled:opacity-70',
+        icon: 'size-9',
+        'icon-xs':
+          "size-6 rounded-[min(var(--radius-md),8px)] in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm':
+          'size-8 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-md',
+        'icon-lg': 'size-10',
+      },
+    },
+    compoundVariants: [
+      {
+        variant: 'default',
+        size: 'xl',
+        className:
+          'shadow-lg shadow-primary/25 hover:bg-brand-700 hover:shadow-primary/35 focus-visible:ring-ring/35',
+      },
+      {
+        variant: 'outline',
+        size: 'xl',
+        className:
+          'border-slate-200 text-slate-700 shadow-sm hover:border-brand-200 hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/20',
+      },
+    ],
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
 
-const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    'bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700 hover:shadow-brand-600/35 focus-visible:ring-brand-500/35',
-  secondary:
-    'border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 focus-visible:ring-brand-500/20',
-};
-
-export function buttonStyles(variant: ButtonVariant = 'primary', className?: string): string {
-  return cn(
-    'inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-70',
-    BUTTON_VARIANTS[variant],
-    className,
-  );
+// O cva só concatena; o cn resolve conflitos como rounded-md (base) × rounded-xl (xl).
+export function buttonVariants(...args: Parameters<typeof variants>): string {
+  return cn(variants(...args));
 }
 
-type ButtonProps = ComponentProps<'button'> & {
-  variant?: ButtonVariant;
-  loading?: boolean;
-  loadingText?: string;
-};
+type ButtonProps = ComponentProps<'button'> &
+  VariantProps<typeof variants> & {
+    asChild?: boolean;
+    loading?: boolean;
+    loadingText?: string;
+  };
 
 export function Button({
-  variant = 'primary',
+  className,
+  variant = 'default',
+  size = 'default',
+  asChild = false,
   loading = false,
   loadingText,
   disabled,
-  className,
   children,
   ...props
 }: ButtonProps) {
+  const Comp = asChild ? Slot.Root : 'button';
+
   return (
-    <button
+    <Comp
+      data-slot='button'
+      data-variant={variant}
+      data-size={size}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={buttonStyles(variant, className)}
+      className={buttonVariants({ variant, size, className })}
       {...props}
     >
       {loading ? (
@@ -51,6 +101,6 @@ export function Button({
       ) : (
         children
       )}
-    </button>
+    </Comp>
   );
 }

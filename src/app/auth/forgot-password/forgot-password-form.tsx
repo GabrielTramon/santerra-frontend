@@ -74,7 +74,9 @@ export default function ForgotPasswordForm() {
 
           <Button
             type='button'
-            variant='secondary'
+            variant='outline'
+            size='xl'
+            className='w-full'
             loading={isSubmitting}
             loadingText='Reenviando...'
             onClick={handleSubmit(handleRequestReset)}
@@ -113,7 +115,13 @@ export default function ForgotPasswordForm() {
           {...register('email')}
         />
 
-        <Button type='submit' className='mt-2' loading={isSubmitting} loadingText='Enviando...'>
+        <Button
+          type='submit'
+          size='xl'
+          className='mt-2 w-full'
+          loading={isSubmitting}
+          loadingText='Enviando...'
+        >
           Enviar link de recuperação
         </Button>
       </form>
