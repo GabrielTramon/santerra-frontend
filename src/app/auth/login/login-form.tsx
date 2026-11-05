@@ -97,7 +97,8 @@ export default function LoginForm({ callbackUrl, initialError }: LoginFormProps)
 
         <Button
           type='submit'
-          className='mt-2'
+          size='xl'
+          className='mt-2 w-full'
           loading={isSubmitting || isRedirecting}
           loadingText='Entrando...'
         >

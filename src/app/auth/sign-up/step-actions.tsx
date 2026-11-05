@@ -20,13 +20,27 @@ export function StepActions({
   return (
     <div className={cn('mt-2 grid gap-3', onBack ? 'grid-cols-[auto_1fr]' : 'grid-cols-1')}>
       {onBack && (
-        <Button type='button' variant='secondary' onClick={onBack} disabled={loading}>
+        <Button
+          type='button'
+          variant='outline'
+          size='xl'
+          className='w-full'
+          onClick={onBack}
+          disabled={loading}
+        >
           <ArrowLeftIcon className='size-4' />
           Voltar
         </Button>
       )}
 
-      <Button type='submit' loading={loading} loadingText={loadingText} disabled={disabled}>
+      <Button
+        type='submit'
+        size='xl'
+        className='w-full'
+        loading={loading}
+        loadingText={loadingText}
+        disabled={disabled}
+      >
         {submitLabel}
         <ChevronRightIcon className='size-4' />
       </Button>
