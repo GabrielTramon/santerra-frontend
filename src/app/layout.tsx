@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 
+import { Toaster } from '@/components/ui/sonner';
+
 import './globals.css';
 import Providers from './providers';
 
@@ -25,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang='pt-BR' className={jakarta.variable} suppressHydrationWarning>
       <body className='font-sans antialiased'>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

@@ -186,7 +186,7 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
     }
 
     toast.success('Pessoa cadastrada.');
-    router.push('/persons');
+    router.push('/admin/persons');
   }
 
   return (
@@ -408,7 +408,7 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
               Descartar alterações
             </Button>
           ) : (
-            <Link href='/persons' className={buttonVariants({ variant: 'outline' })}>
+            <Link href='/admin/persons' className={buttonVariants({ variant: 'outline' })}>
               Cancelar
             </Link>
           )}

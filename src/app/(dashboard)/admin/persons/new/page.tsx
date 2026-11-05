@@ -39,7 +39,7 @@ export default async function NewPersonPage() {
 
   return (
     <div className='mx-auto flex w-full max-w-3xl flex-col gap-6'>
-      <BackLink href='/persons'>Pessoas</BackLink>
+      <BackLink href='/admin/persons'>Pessoas</BackLink>
       <PageHeader
         icon={Users}
         title='Nova pessoa'

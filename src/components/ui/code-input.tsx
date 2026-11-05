@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { cn } from '@/lib/cn';
+import { onlyDigits } from '@/lib/format';
 
 type CodeInputProps = {
   value: string;
@@ -23,10 +24,6 @@ type CodeInputProps = {
   describedBy?: string;
   ref?: Ref<HTMLDivElement>;
 };
-
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, '');
-}
 
 export function CodeInput({
   value,

@@ -51,7 +51,7 @@ export default function PersonRowActions({
         <DropdownMenuContent align='end' className='w-44'>
           {/* A edição fica na página do registro; sem `.update` ela é só leitura. */}
           <DropdownMenuItem asChild>
-            <Link href={`/persons/${personId}`}>
+            <Link href={`/admin/persons/${personId}`}>
               {canUpdate ? <Pencil /> : <Eye />}
               {canUpdate ? 'Editar' : 'Visualizar'}
             </Link>
