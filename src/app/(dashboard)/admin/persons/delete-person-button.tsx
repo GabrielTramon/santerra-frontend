@@ -23,7 +23,7 @@ export default function DeletePersonButton({ personId, personName }: DeletePerso
       personName={personName}
       open={isOpen}
       onOpenChange={setIsOpen}
-      onDeleted={() => router.push('/persons')}
+      onDeleted={() => router.push('/admin/persons')}
     >
       <Button variant='destructive'>
         <Trash2 />

@@ -72,7 +72,7 @@ export default async function PersonsPage({ searchParams }: PersonsPageProps) {
   });
 
   if (persons.meta.totalPages > 0 && page > persons.meta.totalPages) {
-    redirect(buildListHref('/persons', listQuery, persons.meta.totalPages, pageSize));
+    redirect(buildListHref('/admin/persons', listQuery, persons.meta.totalPages, pageSize));
   }
 
   // Toda pessoa nasce com um tipo, então criar também depende de poder criar algum vínculo.
@@ -90,7 +90,7 @@ export default async function PersonsPage({ searchParams }: PersonsPageProps) {
         description='Consulte e gerencie as pessoas cadastradas na sua empresa.'
         actions={
           canCreate && (
-            <Link href='/persons/new' className={buttonVariants()}>
+            <Link href='/admin/persons/new' className={buttonVariants()}>
               <UserPlus />
               Nova pessoa
             </Link>
@@ -107,7 +107,7 @@ export default async function PersonsPage({ searchParams }: PersonsPageProps) {
         canCreate={canCreate}
         canUpdate={canUpdate}
         canDelete={canDelete}
-        footer={<ListPagination pathname='/persons' query={listQuery} meta={persons.meta} />}
+        footer={<ListPagination pathname='/admin/persons' query={listQuery} meta={persons.meta} />}
       />
     </div>
   );

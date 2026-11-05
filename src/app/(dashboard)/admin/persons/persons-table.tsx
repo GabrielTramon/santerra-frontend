@@ -70,7 +70,7 @@ export default function PersonsTable({
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Link href='/persons' className={buttonVariants({ variant: 'outline' })}>
+          <Link href='/admin/persons' className={buttonVariants({ variant: 'outline' })}>
             {getClearLabel(searchTerm, hasFilters)}
           </Link>
         </EmptyContent>
@@ -90,7 +90,7 @@ export default function PersonsTable({
         </EmptyHeader>
         {canCreate && (
           <EmptyContent>
-            <Link href='/persons/new' className={buttonVariants()}>
+            <Link href='/admin/persons/new' className={buttonVariants()}>
               <UserPlus />
               Nova pessoa
             </Link>
@@ -121,7 +121,7 @@ export default function PersonsTable({
 
         <TableBody>
           {persons.map((person) => (
-            <TableRowLink key={person.id} href={`/persons/${person.id}`}>
+            <TableRowLink key={person.id} href={`/admin/persons/${person.id}`}>
               <TableCell className='w-full max-w-0 px-4 py-3'>
                 <div className='flex items-center gap-3'>
                   <Avatar className='size-9'>
@@ -131,7 +131,7 @@ export default function PersonsTable({
                   </Avatar>
                   <div className='min-w-0'>
                     <Link
-                      href={`/persons/${person.id}`}
+                      href={`/admin/persons/${person.id}`}
                       className='block truncate rounded-sm font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50'
                     >
                       {person.name}
