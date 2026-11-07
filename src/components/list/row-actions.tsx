@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
+import {
+  ConfirmDeleteDialog,
+  type DeleteDialogOptions,
+} from '@/components/crud/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,21 +18,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import DeletePersonDialog from './delete-person-dialog';
-
-type PersonRowActionsProps = {
-  personId: string;
-  personName: string;
+type RowActionsProps = {
+  label: string;
+  href: string;
   canUpdate: boolean;
-  canDelete: boolean;
+  deleteDialog?: DeleteDialogOptions;
 };
 
-export default function PersonRowActions({
-  personId,
-  personName,
-  canUpdate,
-  canDelete,
-}: PersonRowActionsProps) {
+export function RowActions({ label, href, canUpdate, deleteDialog }: RowActionsProps) {
   const router = useRouter();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -41,7 +38,7 @@ export default function PersonRowActions({
             ref={triggerRef}
             variant='ghost'
             size='icon-sm'
-            aria-label={`Ações de ${personName}`}
+            aria-label={`Ações de ${label}`}
             className='text-muted-foreground'
           >
             <Menu />
@@ -49,15 +46,14 @@ export default function PersonRowActions({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end' className='w-44'>
-          {/* A edição fica na página do registro; sem `.update` ela é só leitura. */}
           <DropdownMenuItem asChild>
-            <Link href={`/admin/persons/${personId}`}>
+            <Link href={href}>
               {canUpdate ? <Pencil /> : <Eye />}
               {canUpdate ? 'Editar' : 'Visualizar'}
             </Link>
           </DropdownMenuItem>
 
-          {canDelete && (
+          {deleteDialog && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant='destructive' onSelect={() => setIsDeleteOpen(true)}>
@@ -69,11 +65,9 @@ export default function PersonRowActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Fora do menu: o diálogo continua aberto depois que o menu fecha. */}
-      {canDelete && (
-        <DeletePersonDialog
-          personId={personId}
-          personName={personName}
+      {deleteDialog && (
+        <ConfirmDeleteDialog
+          {...deleteDialog}
           open={isDeleteOpen}
           onOpenChange={setIsDeleteOpen}
           onDeleted={() => router.refresh()}

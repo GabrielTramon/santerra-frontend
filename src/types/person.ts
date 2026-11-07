@@ -10,5 +10,4 @@ export type Person = {
 
 export type PersonInput = Pick<Person, 'name' | 'nationalId' | 'phoneNumber' | 'email'>;
 
-// A pessoa não tem campo de tipo: ela é funcionário ou produtor pelo vínculo em /employees ou /producers.
 export type PersonType = 'employee' | 'producer';

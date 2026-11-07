@@ -6,29 +6,27 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-import DeletePersonDialog from './delete-person-dialog';
+import { ConfirmDeleteDialog, type DeleteDialogOptions } from './confirm-delete-dialog';
 
-type DeletePersonButtonProps = {
-  personId: string;
-  personName: string;
+type DeleteRecordButtonProps = DeleteDialogOptions & {
+  listHref: string;
 };
 
-export default function DeletePersonButton({ personId, personName }: DeletePersonButtonProps) {
+export function DeleteRecordButton({ listHref, ...dialog }: DeleteRecordButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <DeletePersonDialog
-      personId={personId}
-      personName={personName}
+    <ConfirmDeleteDialog
+      {...dialog}
       open={isOpen}
       onOpenChange={setIsOpen}
-      onDeleted={() => router.push('/admin/persons')}
+      onDeleted={() => router.push(listHref)}
     >
       <Button variant='destructive'>
         <Trash2 />
         Excluir
       </Button>
-    </DeletePersonDialog>
+    </ConfirmDeleteDialog>
   );
 }

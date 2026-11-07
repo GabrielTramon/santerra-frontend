@@ -7,16 +7,31 @@ export type NavItem = {
   permission?: string;
 };
 
-// Todas as páginas do painel ficam dentro de /admin.
+export type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
 const HOME_HREF = '/admin';
 
-export const NAV_ITEMS: NavItem[] = [
-  { title: 'Início', href: HOME_HREF, icon: House },
-  { title: 'Pessoas', href: '/admin/persons', icon: Users, permission: 'persons.read' },
+export const NAV_GROUPS: NavGroup[] = [
+  { items: [{ title: 'Início', href: HOME_HREF, icon: House }] },
+  {
+    label: 'Cadastros',
+    items: [{ title: 'Pessoas', href: '/admin/persons', icon: Users, permission: 'persons.read' }],
+  },
 ];
 
+export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+
+export function getVisibleNavGroups(permissions: string[]): NavGroup[] {
+  return NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !item.permission || permissions.includes(item.permission)),
+  })).filter((group) => group.items.length > 0);
+}
+
 export function isNavItemActive(pathname: string, href: string): boolean {
-  // O início é prefixo de todas as rotas: só fica ativo na própria página.
   if (href === HOME_HREF) {
     return pathname === href;
   }

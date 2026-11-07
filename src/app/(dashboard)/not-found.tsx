@@ -1,7 +1,6 @@
 import { FileQuestion } from 'lucide-react';
-import Link from 'next/link';
 
-import { buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Empty,
   EmptyContent,
@@ -24,9 +23,9 @@ export default function DashboardNotFound() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Link href='/admin' className={buttonVariants({ variant: 'outline' })}>
+        <Button href='/admin' variant='outline'>
           Voltar para o início
-        </Link>
+        </Button>
       </EmptyContent>
     </Empty>
   );

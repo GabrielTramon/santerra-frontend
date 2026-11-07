@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/lib/auth';
+import { requireSession } from '@/lib/session';
 
 import AccountOverview from './account-overview';
 import WelcomeBanner from './welcome-banner';
@@ -12,12 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect('/auth/login');
-  }
-
+  const session = await requireSession();
   const [firstName] = session.user.name.split(' ');
 
   return (

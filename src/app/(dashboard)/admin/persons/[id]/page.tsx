@@ -1,39 +1,31 @@
 import { Users } from 'lucide-react';
 import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 
-import { BackLink } from '@/components/layout/back-link';
-import { PageHeader } from '@/components/layout/page-header';
-import { apiRequest, isApiErrorWithStatus } from '@/lib/api';
+import { DeleteRecordButton } from '@/components/crud/delete-record-button';
+import { RecordDetails } from '@/components/crud/record-details';
+import { RecordPageLayout } from '@/components/layout/record-page-layout';
+import { getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatNationalId, formatPhone } from '@/lib/format';
+import { hasPermission, requireSession } from '@/lib/session';
 import type { Person } from '@/types/person';
 
-import DeletePersonButton from '../delete-person-button';
-import PersonDetails from '../person-details';
 import PersonForm from '../person-form';
+import { PERSON_DELETE_TEXTS } from '../persons-config';
 
 type PersonPageProps = {
   params: Promise<{ id: string }>;
 };
 
-// generateMetadata e a página chamam com a mesma URL; o Next faz uma requisição só.
 function getPerson(id: string, token: string): Promise<Person> {
-  return apiRequest<Person>(`/persons/${id}`, { token }).catch((error: unknown) => {
-    // 400 quando o id da URL nem é um UUID.
-    if (isApiErrorWithStatus(error, 404) || isApiErrorWithStatus(error, 400)) {
-      notFound();
-    }
-
-    throw error;
-  });
+  return getRecordOrNotFound<Person>(`/persons/${id}`, token);
 }
 
 export async function generateMetadata({ params }: PersonPageProps): Promise<Metadata> {
   const session = await getServerSession(authOptions);
 
-  if (!session?.permissions.includes('persons.read')) {
+  if (!session || !hasPermission(session, 'persons.read')) {
     return { title: 'Pessoa' };
   }
 
@@ -44,31 +36,43 @@ export async function generateMetadata({ params }: PersonPageProps): Promise<Met
 }
 
 export default async function PersonPage({ params }: PersonPageProps) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect('/auth/login');
-  }
-
-  if (!session.permissions.includes('persons.read')) {
-    notFound();
-  }
-
+  const session = await requireSession('persons.read');
   const { id } = await params;
   const person = await getPerson(id, session.accessToken);
-  const canUpdate = session.permissions.includes('persons.update');
-  const canDelete = session.permissions.includes('persons.delete');
+  const canUpdate = hasPermission(session, 'persons.update');
+  const canDelete = hasPermission(session, 'persons.delete');
 
   return (
-    <div className='mx-auto flex w-full max-w-3xl flex-col gap-6'>
-      <BackLink href='/admin/persons'>Pessoas</BackLink>
-      <PageHeader
-        icon={Users}
-        title={person.name}
-        description={`Cadastro criado em ${formatDate(person.createdAt, 'long')}`}
-        actions={canDelete && <DeletePersonButton personId={person.id} personName={person.name} />}
-      />
-      {canUpdate ? <PersonForm person={person} /> : <PersonDetails person={person} />}
-    </div>
+    <RecordPageLayout
+      backHref='/admin/persons'
+      backLabel='Pessoas'
+      icon={Users}
+      title={person.name}
+      description={`Cadastro criado em ${formatDate(person.createdAt, 'long')}`}
+      actions={
+        canDelete && (
+          <DeleteRecordButton
+            {...PERSON_DELETE_TEXTS}
+            recordName={person.name}
+            deletePath={`/persons/${person.id}`}
+            listHref='/admin/persons'
+          />
+        )
+      }
+    >
+      {canUpdate ? (
+        <PersonForm person={person} />
+      ) : (
+        <RecordDetails
+          title='Dados da pessoa'
+          fields={[
+            { label: 'Nome', value: person.name, wide: true },
+            { label: 'CPF ou CNPJ', value: person.nationalId && formatNationalId(person.nationalId) },
+            { label: 'Telefone', value: person.phoneNumber && formatPhone(person.phoneNumber) },
+            { label: 'E-mail', value: person.email, wide: true },
+          ]}
+        />
+      )}
+    </RecordPageLayout>
   );
 }

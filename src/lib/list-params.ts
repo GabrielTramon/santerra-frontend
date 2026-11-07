@@ -9,7 +9,6 @@ export function getSearchParam(searchParams: SearchParams, key: string): string 
   return typeof value === 'string' ? value.trim() : '';
 }
 
-// Comum a toda lista. Valor inválido na URL (link editado à mão) volta para o padrão.
 export function parseListParams(searchParams: SearchParams) {
   const pageSize = Number(getSearchParam(searchParams, 'limit'));
 
@@ -20,7 +19,21 @@ export function parseListParams(searchParams: SearchParams) {
   };
 }
 
-// "2026-11-05", o formato do <input type='date'>. Recusa datas que não existem, como 31/02.
+export function buildApiListQuery(
+  { page, pageSize, search }: ReturnType<typeof parseListParams>,
+  filters: Record<string, string> = {},
+): URLSearchParams {
+  const query = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+
+  Object.entries({ search, ...filters }).forEach(([key, value]) => {
+    if (value) {
+      query.set(key, value);
+    }
+  });
+
+  return query;
+}
+
 export function isIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
@@ -35,7 +48,6 @@ export function toHref(pathname: string, params: URLSearchParams): string {
   return params.size ? `${pathname}?${params}` : pathname;
 }
 
-// Página 1, tamanho padrão e valores vazios ficam fora da URL.
 export function buildListHref(
   pathname: string,
   query: Record<string, string>,

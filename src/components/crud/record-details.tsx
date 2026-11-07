@@ -1,24 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
-import { formatNationalId, formatPhone } from '@/lib/format';
-import type { Person } from '@/types/person';
 
-type PersonDetailsProps = {
-  person: Person;
+type RecordDetailsField = {
+  label: string;
+  value?: string | null;
+  wide?: boolean;
 };
 
-export default function PersonDetails({ person }: PersonDetailsProps) {
-  const fields = [
-    { label: 'Nome', value: person.name, wide: true },
-    { label: 'CPF ou CNPJ', value: person.nationalId && formatNationalId(person.nationalId) },
-    { label: 'Telefone', value: person.phoneNumber && formatPhone(person.phoneNumber) },
-    { label: 'E-mail', value: person.email, wide: true },
-  ];
+type RecordDetailsProps = {
+  title: string;
+  fields: RecordDetailsField[];
+};
 
+export function RecordDetails({ title, fields }: RecordDetailsProps) {
   return (
     <Card className='animate-fade-up [animation-delay:80ms]'>
       <CardHeader>
-        <CardTitle>Dados da pessoa</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>Você tem permissão apenas para visualizar este cadastro.</CardDescription>
       </CardHeader>
 

@@ -1,3 +1,5 @@
+import { notFound } from 'next/navigation';
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:7777';
 
 export class ApiError extends Error {
@@ -17,6 +19,10 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
 
 export function isApiErrorWithStatus(error: unknown, status: number): error is ApiError {
   return error instanceof ApiError && error.status === status;
+}
+
+export function isApiErrorWithCode(error: unknown, code: string): error is ApiError {
+  return error instanceof ApiError && error.code === code;
 }
 
 type ApiRequestOptions = {
@@ -73,4 +79,14 @@ export async function apiRequest<T>(
   }
 
   return data as T;
+}
+
+export function getRecordOrNotFound<T>(path: string, token: string): Promise<T> {
+  return apiRequest<T>(path, { token }).catch((error: unknown) => {
+    if (isApiErrorWithStatus(error, 404) || isApiErrorWithStatus(error, 400)) {
+      notFound();
+    }
+
+    throw error;
+  });
 }

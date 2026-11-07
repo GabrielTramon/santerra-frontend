@@ -1,24 +1,16 @@
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
 
 import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { authOptions } from '@/lib/auth';
+import { requireSession } from '@/lib/session';
 
-// Gravado pelo SidebarProvider (components/ui/sidebar.tsx) ao abrir ou recolher o menu.
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect('/auth/login');
-  }
-
+  const session = await requireSession();
   const cookieStore = await cookies();
   const companyName = session.company?.name ?? '';
 

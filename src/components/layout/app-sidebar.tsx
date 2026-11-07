@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-import { isNavItemActive, NAV_ITEMS } from './nav-items';
+import { getVisibleNavGroups, isNavItemActive } from './nav-items';
 
 type AppSidebarProps = {
   companyName: string;
@@ -31,9 +31,7 @@ type AppSidebarProps = {
 export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
-  const items = NAV_ITEMS.filter(
-    (item) => !item.permission || permissions.includes(item.permission),
-  );
+  const groups = getVisibleNavGroups(permissions);
 
   function closeMobileMenu() {
     setOpenMobile(false);
@@ -71,36 +69,38 @@ export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map(({ title, href, icon: Icon }) => {
-                const isActive = isNavItemActive(pathname, href);
+        {groups.map(({ label, items }) => (
+          <SidebarGroup key={label ?? items[0].href}>
+            {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {items.map(({ title, href, icon: Icon }) => {
+                  const isActive = isNavItemActive(pathname, href);
 
-                return (
-                  <SidebarMenuItem key={href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={title}
-                      className='h-9 font-medium data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-md data-active:shadow-brand-600/25 data-active:hover:bg-sidebar-primary data-active:hover:text-sidebar-primary-foreground'
-                    >
-                      <Link
-                        href={href}
-                        aria-current={isActive ? 'page' : undefined}
-                        onClick={closeMobileMenu}
+                  return (
+                    <SidebarMenuItem key={href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={title}
+                        className='h-9 font-medium data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-md data-active:shadow-brand-600/25 data-active:hover:bg-sidebar-primary data-active:hover:text-sidebar-primary-foreground'
                       >
-                        <Icon />
-                        <span>{title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <Link
+                          href={href}
+                          aria-current={isActive ? 'page' : undefined}
+                          onClick={closeMobileMenu}
+                        >
+                          <Icon />
+                          <span>{title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
