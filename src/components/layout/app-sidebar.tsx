@@ -109,7 +109,7 @@ export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
             <SidebarMenuButton
               tooltip='Sair'
               onClick={() => signOut({ callbackUrl: '/auth/login' })}
-              className='h-9 font-medium hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10 active:text-destructive'
+              className='h-9 justify-center font-medium group-data-[collapsible=icon]:justify-start hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10 active:text-destructive'
             >
               <LogOut />
               <span>Sair</span>

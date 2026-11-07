@@ -2,10 +2,9 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BriefcaseBusiness, type LucideIcon, Tractor } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import Link from 'next/link';
+import { type ReactNode, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { FormCard } from '@/components/form/form-card';
@@ -15,6 +14,7 @@ import { FormSelect } from '@/components/form/form-select';
 import { FieldSeparator } from '@/components/ui/field';
 import { useCreatePerson } from '@/hooks/persons/use-create-person';
 import { useUpdatePerson } from '@/hooks/persons/use-update-person';
+import { useReturnToList } from '@/hooks/use-return-to-list';
 import { getApiErrorMessage, isApiErrorWithStatus } from '@/lib/api';
 import { maskNationalId, maskPhone } from '@/lib/format';
 import {
@@ -87,14 +87,36 @@ function toFormValues(person?: Person, personTypes: PersonType[] = []): PersonFo
   };
 }
 
+function getPotentialDescription(hasPotentials: boolean, canCreatePotential: boolean): ReactNode {
+  if (hasPotentials) {
+    return 'Classificação do produtor pela empresa.';
+  }
+
+  if (!canCreatePotential) {
+    return 'Cadastre um potencial antes de cadastrar produtores.';
+  }
+
+  return (
+    <>
+      <Link href='/admin/potentials/new'>Cadastre um potencial</Link> antes de cadastrar produtores.
+    </>
+  );
+}
+
 type PersonFormProps = {
   person?: Person;
   personTypes?: PersonType[];
   potentials?: Pick<Potential, 'id' | 'name'>[];
+  canCreatePotential?: boolean;
 };
 
-export default function PersonForm({ person, personTypes = [], potentials = [] }: PersonFormProps) {
-  const router = useRouter();
+export default function PersonForm({
+  person,
+  personTypes = [],
+  potentials = [],
+  canCreatePotential = false,
+}: PersonFormProps) {
+  const returnToList = useReturnToList('/admin/persons');
   const { mutate: createPerson } = useCreatePerson();
   const { mutate: updatePerson } = useUpdatePerson();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -113,13 +135,11 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
   async function handleSave({ type, potentialId, ...values }: PersonFormOutput) {
     setErrorMessage(null);
 
-    let savedPerson: Person;
-
     try {
       if (person) {
-        savedPerson = await updatePerson(person.id, values);
+        await updatePerson(person.id, values);
       } else if (type) {
-        savedPerson = await createPerson({ ...values, type, potentialId });
+        await createPerson({ ...values, type, potentialId });
       } else {
         return;
       }
@@ -133,15 +153,7 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
       return;
     }
 
-    if (person) {
-      reset(toFormValues(savedPerson));
-      toast.success('Alterações salvas.');
-      router.refresh();
-      return;
-    }
-
-    toast.success('Pessoa cadastrada.');
-    router.push('/admin/persons');
+    returnToList(person ? 'Alterações salvas.' : 'Pessoa cadastrada.');
   }
 
   return (
@@ -180,11 +192,7 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
                 potentials.length > 0 ? 'Selecione o potencial' : 'Nenhum potencial cadastrado'
               }
               disabled={potentials.length === 0}
-              description={
-                potentials.length > 0
-                  ? 'Classificação do produtor pela empresa.'
-                  : 'Cadastre um potencial antes de cadastrar produtores.'
-              }
+              description={getPotentialDescription(potentials.length > 0, canCreatePotential)}
             />
           )}
 
