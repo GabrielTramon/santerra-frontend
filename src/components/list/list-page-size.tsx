@@ -21,7 +21,6 @@ export function ListPageSize({ value }: ListPageSizeProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const labelId = useId();
-  // Mostra o tamanho escolhido enquanto a nova página carrega.
   const [optimisticValue, setOptimisticValue] = useOptimistic(value);
   const [, startTransition] = useTransition();
 

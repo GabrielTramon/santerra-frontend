@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import Link from 'next/link';
 import { Slot } from 'radix-ui';
 import type { ComponentProps } from 'react';
 
@@ -58,7 +59,6 @@ const variants = cva(
   },
 );
 
-// O cva só concatena; o cn resolve conflitos como rounded-md (base) × rounded-xl (xl).
 export function buttonVariants(...args: Parameters<typeof variants>): string {
   return cn(variants(...args));
 }
@@ -66,6 +66,7 @@ export function buttonVariants(...args: Parameters<typeof variants>): string {
 type ButtonProps = ComponentProps<'button'> &
   VariantProps<typeof variants> & {
     asChild?: boolean;
+    href?: string;
     loading?: boolean;
     loadingText?: string;
   };
@@ -75,12 +76,27 @@ export function Button({
   variant = 'default',
   size = 'default',
   asChild = false,
+  href,
   loading = false,
   loadingText,
   disabled,
   children,
   ...props
 }: ButtonProps) {
+  if (href) {
+    return (
+      <Link
+        href={href}
+        data-slot='button'
+        data-variant={variant}
+        data-size={size}
+        className={buttonVariants({ variant, size, className })}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   const Comp = asChild ? Slot.Root : 'button';
 
   return (

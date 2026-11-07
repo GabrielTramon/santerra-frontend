@@ -3,12 +3,11 @@
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-type PersonsErrorProps = {
-  error: Error & { digest?: string };
+type ErrorStateProps = {
   retry: () => void;
 };
 
-export default function PersonsError({ retry }: PersonsErrorProps) {
+export function ErrorState({ retry }: ErrorStateProps) {
   return (
     <div className='flex flex-col items-start gap-4'>
       <Alert variant='error' title='Não foi possível carregar os dados'>

@@ -24,7 +24,6 @@ export function ListSearch({ placeholder }: ListSearchProps) {
   const [renderedUrlTerm, setRenderedUrlTerm] = useState(urlTerm);
   const [isPending, startTransition] = useTransition();
 
-  // A URL mudou sem ser pela digitação (menu, "Limpar busca", voltar do navegador): o campo acompanha.
   if (urlTerm !== renderedUrlTerm) {
     setRenderedUrlTerm(urlTerm);
 

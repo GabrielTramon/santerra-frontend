@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { BackToLoginLink } from '@/components/auth/back-to-login-link';
 import { Alert } from '@/components/ui/alert';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { CheckCircleIcon, LockIcon } from '@/components/ui/icons';
 import { PasswordField } from '@/components/ui/password-field';
 import { useResetPassword } from '@/hooks/auth/use-reset-password';
@@ -70,12 +70,9 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           description='Sua senha foi redefinida com sucesso. Agora é só entrar com a nova senha.'
         />
 
-        <Link
-          href='/auth/login'
-          className={buttonVariants({ size: 'xl', className: 'w-full animate-fade-up' })}
-        >
+        <Button href='/auth/login' size='xl' className='w-full animate-fade-up'>
           Ir para o login
-        </Link>
+        </Button>
       </>
     );
   }

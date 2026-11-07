@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { ListSearch } from '@/components/list/list-search';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type PageHeaderProps = {
+export type PageHeaderProps = {
   icon: LucideIcon;
   title: string;
   description?: ReactNode;

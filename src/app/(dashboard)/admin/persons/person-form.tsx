@@ -2,47 +2,26 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BriefcaseBusiness, type LucideIcon, Tractor } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { Alert } from '@/components/ui/alert';
-import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-  FieldTitle,
-} from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FormCard } from '@/components/form/form-card';
+import { FormInput } from '@/components/form/form-input';
+import { FormRadioCards } from '@/components/form/form-radio-cards';
+import { FormSelect } from '@/components/form/form-select';
+import { FieldSeparator } from '@/components/ui/field';
 import { useCreatePerson } from '@/hooks/persons/use-create-person';
 import { useUpdatePerson } from '@/hooks/persons/use-update-person';
 import { getApiErrorMessage, isApiErrorWithStatus } from '@/lib/api';
-import { maskNationalId, maskPhone, onlyDigits } from '@/lib/format';
+import { maskNationalId, maskPhone } from '@/lib/format';
+import {
+  optionalEmailSchema,
+  optionalNationalIdSchema,
+  optionalPhoneSchema,
+} from '@/lib/schemas';
 import type { Person, PersonType } from '@/types/person';
 import type { Potential } from '@/types/potential';
 
@@ -62,34 +41,13 @@ const PERSON_TYPE_CHOICES: Record<
   },
 };
 
-function digitsOrNull(value: string): string | null {
-  return onlyDigits(value) || null;
-}
-
-// O tipo só existe no cadastro: a API da pessoa não informa o tipo, então a edição não o mostra.
 function getPersonFormSchema(isCreating: boolean) {
   return z
     .object({
       name: z.string().trim().min(1, 'Informe o nome'),
-      nationalId: z
-        .string()
-        .refine(
-          (value) => [0, 11, 14].includes(onlyDigits(value).length),
-          'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos)',
-        )
-        .transform(digitsOrNull),
-      phoneNumber: z
-        .string()
-        .refine(
-          (value) => [0, 10, 11].includes(onlyDigits(value).length),
-          'Informe o telefone com DDD',
-        )
-        .transform(digitsOrNull),
-      email: z
-        .string()
-        .trim()
-        .refine((value) => !value || z.email().safeParse(value).success, 'Informe um e-mail válido')
-        .transform((value) => value || null),
+      nationalId: optionalNationalIdSchema,
+      phoneNumber: optionalPhoneSchema,
+      email: optionalEmailSchema,
       type: z.enum(['employee', 'producer']).optional(),
       potentialId: z.string(),
     })
@@ -124,14 +82,12 @@ function toFormValues(person?: Person, personTypes: PersonType[] = []): PersonFo
     nationalId: person?.nationalId ? maskNationalId(person.nationalId) : '',
     phoneNumber: person?.phoneNumber ? maskPhone(person.phoneNumber) : '',
     email: person?.email ?? '',
-    // Com um tipo só disponível, ele já vem marcado.
     type: personTypes.length === 1 ? personTypes[0] : undefined,
     potentialId: '',
   };
 }
 
 type PersonFormProps = {
-  // Edição. Sem `person` é cadastro, e `personTypes` são os tipos que o usuário pode escolher.
   person?: Person;
   personTypes?: PersonType[];
   potentials?: Pick<Potential, 'id' | 'name'>[];
@@ -165,7 +121,6 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
       } else if (type) {
         savedPerson = await createPerson({ ...values, type, potentialId });
       } else {
-        // O schema do cadastro já exige o tipo.
         return;
       }
     } catch (error) {
@@ -190,239 +145,90 @@ export default function PersonForm({ person, personTypes = [], potentials = [] }
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(handleSave)} className='animate-fade-up [animation-delay:80ms]'>
-      <Card>
-        <CardHeader>
-          <CardTitle>Dados da pessoa</CardTitle>
-          <CardDescription>
-            {person
-              ? 'Nome, documento e formas de contato.'
-              : 'Tipo, nome, documento e formas de contato.'}
-          </CardDescription>
-        </CardHeader>
+    <FormCard
+      title='Dados da pessoa'
+      description={
+        person ? 'Nome, documento e formas de contato.' : 'Tipo, nome, documento e formas de contato.'
+      }
+      onSubmit={handleSubmit(handleSave)}
+      errorMessage={errorMessage}
+      isEditing={Boolean(person)}
+      isDirty={isDirty}
+      isSubmitting={isSubmitting}
+      onDiscard={() => reset()}
+      cancelHref='/admin/persons'
+      createLabel='Cadastrar pessoa'
+    >
+      {!person && (
+        <>
+          <FormRadioCards
+            control={control}
+            name='type'
+            label='Tipo de pessoa'
+            required
+            options={personTypes.map((type) => ({ value: type, ...PERSON_TYPE_CHOICES[type] }))}
+          />
 
-        <CardContent className='gap-5'>
-          {errorMessage && <Alert variant='error'>{errorMessage}</Alert>}
-
-          {!person && (
-            <>
-              <Controller
-                name='type'
-                control={control}
-                render={({ field, fieldState }) => (
-                  <FieldSet data-invalid={fieldState.invalid} className='gap-3'>
-                    <FieldLegend variant='label'>
-                      Tipo de pessoa{' '}
-                      <span aria-hidden='true' className='text-destructive'>
-                        *
-                      </span>
-                    </FieldLegend>
-                    <RadioGroup
-                      name={field.name}
-                      value={field.value ?? ''}
-                      onValueChange={field.onChange}
-                      aria-required
-                      aria-invalid={fieldState.invalid}
-                      className='sm:grid-cols-2'
-                    >
-                      {personTypes.map((type) => {
-                        const { label, description, icon: Icon } = PERSON_TYPE_CHOICES[type];
-
-                        return (
-                          <FieldLabel key={type} htmlFor={`person-type-${type}`}>
-                            <Field orientation='horizontal'>
-                              <span className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300'>
-                                <Icon className='size-4' />
-                              </span>
-                              <FieldContent>
-                                <FieldTitle>{label}</FieldTitle>
-                                <FieldDescription>{description}</FieldDescription>
-                              </FieldContent>
-                              <RadioGroupItem
-                                id={`person-type-${type}`}
-                                value={type}
-                                aria-invalid={fieldState.invalid}
-                              />
-                            </Field>
-                          </FieldLabel>
-                        );
-                      })}
-                    </RadioGroup>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </FieldSet>
-                )}
-              />
-
-              {selectedType === 'producer' && (
-                <Controller
-                  name='potentialId'
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>
-                        <span>
-                          Potencial{' '}
-                          <span aria-hidden='true' className='text-destructive'>
-                            *
-                          </span>
-                        </span>
-                      </FieldLabel>
-                      <Select
-                        name={field.name}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={potentials.length === 0}
-                      >
-                        <SelectTrigger
-                          ref={field.ref}
-                          id={field.name}
-                          aria-invalid={fieldState.invalid}
-                          className='w-full'
-                        >
-                          <SelectValue
-                            placeholder={
-                              potentials.length > 0
-                                ? 'Selecione o potencial'
-                                : 'Nenhum potencial cadastrado'
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent position='popper'>
-                          {potentials.map((potential) => (
-                            <SelectItem key={potential.id} value={potential.id}>
-                              {potential.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FieldDescription>
-                        {potentials.length > 0
-                          ? 'Classificação do produtor pela empresa.'
-                          : 'Cadastre um potencial antes de cadastrar produtores.'}
-                      </FieldDescription>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              )}
-
-              <FieldSeparator />
-            </>
+          {selectedType === 'producer' && (
+            <FormSelect
+              control={control}
+              name='potentialId'
+              label='Potencial'
+              required
+              options={potentials.map(({ id, name }) => ({ value: id, label: name }))}
+              placeholder={
+                potentials.length > 0 ? 'Selecione o potencial' : 'Nenhum potencial cadastrado'
+              }
+              disabled={potentials.length === 0}
+              description={
+                potentials.length > 0
+                  ? 'Classificação do produtor pela empresa.'
+                  : 'Cadastre um potencial antes de cadastrar produtores.'
+              }
+            />
           )}
 
-          <div className='grid gap-5 sm:grid-cols-2'>
-            <Controller
-              name='name'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className='sm:col-span-2'>
-                  <FieldLabel htmlFor={field.name}>
-                    <span>
-                      Nome{' '}
-                      <span aria-hidden='true' className='text-destructive'>
-                        *
-                      </span>
-                    </span>
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    required
-                    autoComplete='name'
-                    placeholder='Nome completo ou razão social'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+          <FieldSeparator />
+        </>
+      )}
 
-            <Controller
-              name='nationalId'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>CPF ou CNPJ</FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    inputMode='numeric'
-                    placeholder='000.000.000-00'
-                    aria-invalid={fieldState.invalid}
-                    onChange={(event) => field.onChange(maskNationalId(event.target.value))}
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name='phoneNumber'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Telefone</FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    type='tel'
-                    autoComplete='tel-national'
-                    placeholder='(00) 00000-0000'
-                    aria-invalid={fieldState.invalid}
-                    onChange={(event) => field.onChange(maskPhone(event.target.value))}
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name='email'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className='sm:col-span-2'>
-                  <FieldLabel htmlFor={field.name}>E-mail</FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    type='email'
-                    autoComplete='email'
-                    placeholder='nome@exemplo.com'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter className='justify-end gap-2 border-t'>
-          {person ? (
-            <Button
-              type='button'
-              variant='outline'
-              disabled={!isDirty || isSubmitting}
-              onClick={() => reset()}
-            >
-              Descartar alterações
-            </Button>
-          ) : (
-            <Link href='/admin/persons' className={buttonVariants({ variant: 'outline' })}>
-              Cancelar
-            </Link>
-          )}
-
-          <Button
-            type='submit'
-            disabled={Boolean(person) && !isDirty}
-            loading={isSubmitting}
-            loadingText='Salvando...'
-          >
-            {person ? 'Salvar alterações' : 'Cadastrar pessoa'}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+      <div className='grid gap-5 sm:grid-cols-2'>
+        <FormInput
+          control={control}
+          name='name'
+          label='Nome'
+          required
+          autoComplete='name'
+          placeholder='Nome completo ou razão social'
+          className='sm:col-span-2'
+        />
+        <FormInput
+          control={control}
+          name='nationalId'
+          label='CPF ou CNPJ'
+          inputMode='numeric'
+          placeholder='000.000.000-00'
+          mask={maskNationalId}
+        />
+        <FormInput
+          control={control}
+          name='phoneNumber'
+          label='Telefone'
+          type='tel'
+          autoComplete='tel-national'
+          placeholder='(00) 00000-0000'
+          mask={maskPhone}
+        />
+        <FormInput
+          control={control}
+          name='email'
+          label='E-mail'
+          type='email'
+          autoComplete='email'
+          placeholder='nome@exemplo.com'
+          className='sm:col-span-2'
+        />
+      </div>
+    </FormCard>
   );
 }

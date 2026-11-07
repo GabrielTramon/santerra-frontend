@@ -14,7 +14,6 @@ import { ListPageSize } from './list-page-size';
 
 type PageItem = number | 'ellipsis';
 
-// Primeira, última, a atual e as vizinhas; o resto vira reticências.
 function getPageItems(page: number, totalPages: number): PageItem[] {
   const pages = [...new Set([1, page - 1, page, page + 1, totalPages])]
     .filter((item) => item >= 1 && item <= totalPages)
@@ -35,7 +34,6 @@ type ListPaginationProps = {
   meta: PaginationMeta;
 };
 
-// Rodapé do card da tabela (prop `footer` da tabela do módulo).
 export function ListPagination({ pathname, query = {}, meta }: ListPaginationProps) {
   const { page, limit, total, totalPages } = meta;
 
@@ -47,7 +45,6 @@ export function ListPagination({ pathname, query = {}, meta }: ListPaginationPro
     return buildListHref(pathname, query, targetPage, limit);
   }
 
-  // Link não tem estado desabilitado: na primeira/última página o passo fica inerte.
   function getStepProps(targetPage: number, disabled: boolean) {
     return disabled
       ? {
@@ -60,13 +57,10 @@ export function ListPagination({ pathname, query = {}, meta }: ListPaginationPro
   }
 
   return (
-    // No celular a navegação sobe para a primeira linha; tamanho e página ficam embaixo.
     <div className='grid grid-cols-2 items-center gap-3 border-t px-4 py-3 sm:grid-cols-[1fr_auto_1fr]'>
       <ListPageSize value={limit} />
 
-      {/* Sempre visível, mesmo com uma página só (passos desabilitados): é o padrão do projeto. */}
       <Pagination className='col-span-2 row-start-1 sm:col-span-1 sm:col-start-2'>
-        {/* Sem espaço entre os itens no celular: com reticências dos dois lados (7 números), é o que cabe. */}
         <PaginationContent className='gap-0 rounded-lg border bg-card p-0.5 shadow-xs sm:gap-0.5'>
           <PaginationItem>
             <PaginationPrevious size='sm' {...getStepProps(page - 1, page <= 1)} />

@@ -6,11 +6,9 @@ import type { Person, PersonInput, PersonType } from '@/types/person';
 
 export type CreatePersonInput = PersonInput & {
   type: PersonType;
-  // Obrigatório para produtor (o backend exige).
   potentialId?: string;
 };
 
-// Cadastra a pessoa e, em seguida, o vínculo do tipo escolhido (funcionário ou produtor).
 export function useCreatePerson() {
   const { data: session } = useSession();
 
@@ -29,8 +27,6 @@ export function useCreatePerson() {
         });
       }
     } catch (error) {
-      // Toda pessoa tem um tipo: sem o vínculo, desfaz o cadastro. Se até isso falhar, ela
-      // continua na lista (sem tipo) para ser excluída à mão.
       await apiRequest(`/persons/${person.id}`, { method: 'DELETE', token }).catch(() => undefined);
       throw error;
     }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { onlyDigits } from './format';
 import { MIN_PASSWORD_LENGTH } from './password';
 
 export const emailSchema = z
@@ -7,6 +8,29 @@ export const emailSchema = z
   .trim()
   .min(1, 'Informe seu e-mail')
   .pipe(z.email('Informe um e-mail válido'));
+
+function digitsOrNull(value: string): string | null {
+  return onlyDigits(value) || null;
+}
+
+export const optionalNationalIdSchema = z
+  .string()
+  .refine(
+    (value) => [0, 11, 14].includes(onlyDigits(value).length),
+    'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos)',
+  )
+  .transform(digitsOrNull);
+
+export const optionalPhoneSchema = z
+  .string()
+  .refine((value) => [0, 10, 11].includes(onlyDigits(value).length), 'Informe o telefone com DDD')
+  .transform(digitsOrNull);
+
+export const optionalEmailSchema = z
+  .string()
+  .trim()
+  .refine((value) => !value || z.email().safeParse(value).success, 'Informe um e-mail válido')
+  .transform((value) => value || null);
 
 export function createPasswordConfirmationSchema(confirmationMessage: string) {
   return z
