@@ -1,13 +1,39 @@
 const TIME_ZONE = 'America/Sao_Paulo';
 const TIME_ZONE_OFFSET = '-03:00';
+const DECIMAL_INTEGER_DIGITS = 10;
+const DECIMAL_FRACTION_DIGITS = 2;
 
 const dateFormatters = {
   short: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: TIME_ZONE }),
   long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: TIME_ZONE }),
 };
 
+const decimalFormatter = new Intl.NumberFormat('pt-BR', {
+  maximumFractionDigits: DECIMAL_FRACTION_DIGITS,
+});
+
 export function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
+}
+
+export function formatDecimal(value: number): string {
+  return decimalFormatter.format(value);
+}
+
+export function maskDecimal(value: string): string {
+  const normalized = value.includes(',') ? value.replace(/\./g, '') : value.replace(/\./g, ',');
+  const [integer, ...fraction] = normalized.replace(/[^\d,]/g, '').split(',');
+  const integerDigits = integer.replace(/^0+(?=\d)/, '').slice(0, DECIMAL_INTEGER_DIGITS);
+
+  if (fraction.length === 0) {
+    return integerDigits;
+  }
+
+  return `${integerDigits || '0'},${fraction.join('').slice(0, DECIMAL_FRACTION_DIGITS)}`;
+}
+
+export function parseDecimal(value: string): number | null {
+  return value ? Number(value.replace(',', '.')) : null;
 }
 
 export function normalizeDocumentSearch(term: string): string {

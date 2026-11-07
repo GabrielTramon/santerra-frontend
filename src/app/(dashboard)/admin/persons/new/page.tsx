@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { apiRequest } from '@/lib/api';
-import { requireSession } from '@/lib/session';
+import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Potential } from '@/types/potential';
 
@@ -40,6 +40,7 @@ export default async function NewPersonPage() {
       <PersonForm
         personTypes={personTypes}
         potentials={potentials?.data.map(({ id, name }) => ({ id, name })) ?? []}
+        canCreatePotential={hasPermission(session, 'potentials.create')}
       />
     </RecordPageLayout>
   );

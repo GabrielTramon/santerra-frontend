@@ -1,4 +1,4 @@
-import { House, type LucideIcon, Users } from 'lucide-react';
+import { Gauge, House, type LucideIcon, Users } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -19,6 +19,17 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Cadastros',
     items: [{ title: 'Pessoas', href: '/admin/persons', icon: Users, permission: 'persons.read' }],
+  },
+  {
+    label: 'Configurações',
+    items: [
+      {
+        title: 'Potenciais',
+        href: '/admin/potentials',
+        icon: Gauge,
+        permission: 'potentials.read',
+      },
+    ],
   },
 ];
 

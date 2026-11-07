@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { onlyDigits } from './format';
+import { onlyDigits, parseDecimal } from './format';
 import { MIN_PASSWORD_LENGTH } from './password';
 
 export const emailSchema = z
@@ -31,6 +31,13 @@ export const optionalEmailSchema = z
   .trim()
   .refine((value) => !value || z.email().safeParse(value).success, 'Informe um e-mail válido')
   .transform((value) => value || null);
+
+export const optionalTextSchema = z
+  .string()
+  .trim()
+  .transform((value) => value || null);
+
+export const optionalDecimalSchema = z.string().transform(parseDecimal);
 
 export function createPasswordConfirmationSchema(confirmationMessage: string) {
   return z

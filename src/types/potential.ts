@@ -6,3 +6,9 @@ export type Potential = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type PotentialListItem = Potential & {
+  producersCount: number;
+};
+
+export type PotentialInput = Pick<Potential, 'name' | 'numericValue' | 'description'>;
