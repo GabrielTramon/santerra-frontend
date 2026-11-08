@@ -8,6 +8,13 @@ const dateFormatters = {
   long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: TIME_ZONE }),
 };
 
+const dateInputFormatter = new Intl.DateTimeFormat('en-CA', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: TIME_ZONE,
+});
+
 const decimalFormatter = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: DECIMAL_FRACTION_DIGITS,
 });
@@ -51,6 +58,10 @@ export function toDayBoundary(date: string, boundary: 'start' | 'end'): string {
   const time = boundary === 'start' ? '00:00:00.000' : '23:59:59.999';
 
   return `${date}T${time}${TIME_ZONE_OFFSET}`;
+}
+
+export function toDateInputValue(value: string): string {
+  return dateInputFormatter.format(new Date(value));
 }
 
 function applyMask(digits: string, groups: number[], separators: string[]): string {

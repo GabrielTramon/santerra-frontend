@@ -1,0 +1,7 @@
+export type Member = {
+  id: string;
+  name: string;
+  email: string;
+  isOwner: boolean;
+  active: boolean;
+};

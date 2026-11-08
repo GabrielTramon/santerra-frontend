@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -13,9 +14,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-type FormCardProps = {
+type FormCardCancel =
+  | { cancelHref: string; onCancel?: never }
+  | { cancelHref?: never; onCancel: () => void };
+
+type FormCardProps = FormCardCancel & {
   title: string;
   description: string;
+  action?: ReactNode;
   onSubmit: FormEventHandler<HTMLFormElement>;
   errorMessage?: string | null;
   children: ReactNode;
@@ -23,13 +29,13 @@ type FormCardProps = {
   isDirty: boolean;
   isSubmitting: boolean;
   onDiscard: () => void;
-  cancelHref: string;
   createLabel: string;
 };
 
 export function FormCard({
   title,
   description,
+  action,
   onSubmit,
   errorMessage,
   children,
@@ -38,6 +44,7 @@ export function FormCard({
   isSubmitting,
   onDiscard,
   cancelHref,
+  onCancel,
   createLabel,
 }: FormCardProps) {
   return (
@@ -46,6 +53,7 @@ export function FormCard({
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
+          {action && <CardAction>{action}</CardAction>}
         </CardHeader>
 
         <CardContent className='gap-5'>
@@ -54,7 +62,7 @@ export function FormCard({
         </CardContent>
 
         <CardFooter className='justify-end gap-2 border-t'>
-          {isEditing ? (
+          {isEditing && (
             <Button
               type='button'
               variant='outline'
@@ -63,11 +71,17 @@ export function FormCard({
             >
               Descartar alterações
             </Button>
-          ) : (
-            <Button href={cancelHref} variant='outline'>
-              Cancelar
-            </Button>
           )}
+          {!isEditing &&
+            (onCancel ? (
+              <Button type='button' variant='outline' disabled={isSubmitting} onClick={onCancel}>
+                Cancelar
+              </Button>
+            ) : (
+              <Button href={cancelHref} variant='outline'>
+                Cancelar
+              </Button>
+            ))}
 
           <Button
             type='submit'

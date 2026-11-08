@@ -42,7 +42,7 @@ type DataTableProps<T extends { id: string }> = {
   columns: DataTableColumn<T>[];
   actions: {
     canUpdate: boolean;
-    deleteDialog?: (row: T) => DeleteDialogOptions;
+    deleteDialog?: (row: T) => DeleteDialogOptions | undefined;
   };
   emptyState: ReactNode;
   footer?: ReactNode;

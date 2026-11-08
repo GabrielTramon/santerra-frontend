@@ -22,6 +22,7 @@ import { useDeleteRecord } from '@/hooks/use-delete-record';
 import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
 
 export type DeleteDialogTexts = {
+  title?: string;
   description: string;
   confirmLabel: string;
   successMessage: string;
@@ -44,6 +45,7 @@ type ConfirmDeleteDialogProps = DeleteDialogOptions & {
 export function ConfirmDeleteDialog({
   recordName,
   deletePath,
+  title,
   description,
   confirmLabel,
   successMessage,
@@ -95,7 +97,7 @@ export function ConfirmDeleteDialog({
           <AlertDialogMedia className='bg-destructive/10 text-destructive'>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Excluir {recordName}?</AlertDialogTitle>
+          <AlertDialogTitle>{title ?? <>Excluir {recordName}?</>}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 

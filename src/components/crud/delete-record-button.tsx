@@ -10,9 +10,16 @@ import { ConfirmDeleteDialog, type DeleteDialogOptions } from './confirm-delete-
 
 type DeleteRecordButtonProps = DeleteDialogOptions & {
   listHref: string;
+  label?: string;
+  size?: 'default' | 'sm';
 };
 
-export function DeleteRecordButton({ listHref, ...dialog }: DeleteRecordButtonProps) {
+export function DeleteRecordButton({
+  listHref,
+  label = 'Excluir',
+  size = 'default',
+  ...dialog
+}: DeleteRecordButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -23,9 +30,9 @@ export function DeleteRecordButton({ listHref, ...dialog }: DeleteRecordButtonPr
       onOpenChange={setIsOpen}
       onDeleted={() => router.push(listHref)}
     >
-      <Button variant='destructive'>
+      <Button variant='destructive' size={size}>
         <Trash2 />
-        Excluir
+        {label}
       </Button>
     </ConfirmDeleteDialog>
   );
