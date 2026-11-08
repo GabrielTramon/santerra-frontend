@@ -24,6 +24,7 @@ import { getApiErrorMessage, isApiErrorWithCode } from '@/lib/api';
 export type DeleteDialogTexts = {
   title?: string;
   description: string;
+  warning?: string;
   confirmLabel: string;
   successMessage: string;
   errorMessage: string;
@@ -47,6 +48,7 @@ export function ConfirmDeleteDialog({
   deletePath,
   title,
   description,
+  warning,
   confirmLabel,
   successMessage,
   errorMessage,
@@ -101,7 +103,11 @@ export function ConfirmDeleteDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 
-        {inUseMessage && <Alert variant='error'>{inUseMessage}</Alert>}
+        {inUseMessage ? (
+          <Alert variant='error'>{inUseMessage}</Alert>
+        ) : (
+          warning && <Alert variant='warning'>{warning}</Alert>
+        )}
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>{inUseMessage ? 'Fechar' : 'Cancelar'}</AlertDialogCancel>

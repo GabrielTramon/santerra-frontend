@@ -1,8 +1,10 @@
 import {
+  Boxes,
   BriefcaseBusiness,
   Contact,
   Gauge,
   House,
+  Layers,
   type LucideIcon,
   Settings,
   Tractor,
@@ -52,6 +54,18 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/admin/producers',
             icon: Tractor,
             permission: ['persons.read', 'producers.read'],
+          },
+        ],
+      },
+      {
+        title: 'Catálogo',
+        icon: Boxes,
+        items: [
+          {
+            title: 'Grupos de produtos',
+            href: '/admin/groups',
+            icon: Layers,
+            permission: 'groups.read',
           },
         ],
       },
