@@ -1,8 +1,10 @@
 import {
   Boxes,
   BriefcaseBusiness,
+  CalendarDays,
   Contact,
   Gauge,
+  Handshake,
   House,
   Layers,
   type LucideIcon,
@@ -54,6 +56,18 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/admin/producers',
             icon: Tractor,
             permission: ['persons.read', 'producers.read'],
+          },
+        ],
+      },
+      {
+        title: 'Comercial',
+        icon: Handshake,
+        items: [
+          {
+            title: 'Eventos',
+            href: '/admin/events',
+            icon: CalendarDays,
+            permission: 'events.read',
           },
         ],
       },
