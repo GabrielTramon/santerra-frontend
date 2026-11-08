@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { onlyDigits, parseDecimal } from './format';
+import { onlyDigits, parseDecimal, toDayBoundary } from './format';
 import { MIN_PASSWORD_LENGTH } from './password';
 
 export const emailSchema = z
@@ -38,6 +38,10 @@ export const optionalTextSchema = z
   .transform((value) => value || null);
 
 export const optionalDecimalSchema = z.string().transform(parseDecimal);
+
+export const optionalDateSchema = z
+  .string()
+  .transform((value) => (value ? toDayBoundary(value, 'start') : null));
 
 export function createPasswordConfirmationSchema(confirmationMessage: string) {
   return z

@@ -1,4 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { ReactNode } from 'react';
+
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 
 type RecordDetailsField = {
@@ -10,14 +19,16 @@ type RecordDetailsField = {
 type RecordDetailsProps = {
   title: string;
   fields: RecordDetailsField[];
+  action?: ReactNode;
 };
 
-export function RecordDetails({ title, fields }: RecordDetailsProps) {
+export function RecordDetails({ title, fields, action }: RecordDetailsProps) {
   return (
     <Card className='animate-fade-up [animation-delay:80ms]'>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>Você tem permissão apenas para visualizar este cadastro.</CardDescription>
+        {action && <CardAction>{action}</CardAction>}
       </CardHeader>
 
       <CardContent>

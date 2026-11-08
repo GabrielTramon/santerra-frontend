@@ -14,6 +14,8 @@ import {
 
 import { FormLabel } from './form-label';
 
+const EMPTY_OPTION_VALUE = '__empty__';
+
 type FormSelectOption = {
   value: string;
   label: string;
@@ -24,6 +26,7 @@ type FormSelectProps<TValues extends FieldValues, TContext, TTransformed> = {
   name: FieldPath<TValues>;
   label: string;
   options: FormSelectOption[];
+  emptyOption?: string;
   required?: boolean;
   placeholder?: string;
   disabled?: boolean;
@@ -36,6 +39,7 @@ export function FormSelect<TValues extends FieldValues, TContext, TTransformed>(
   name,
   label,
   options,
+  emptyOption,
   required,
   placeholder,
   disabled,
@@ -51,8 +55,8 @@ export function FormSelect<TValues extends FieldValues, TContext, TTransformed>(
           <FormLabel htmlFor={field.name} label={label} required={required} />
           <Select
             name={field.name}
-            value={field.value as string}
-            onValueChange={field.onChange}
+            value={(field.value as string) || (emptyOption ? EMPTY_OPTION_VALUE : '')}
+            onValueChange={(value) => field.onChange(value === EMPTY_OPTION_VALUE ? '' : value)}
             disabled={disabled}
           >
             <SelectTrigger
@@ -64,6 +68,7 @@ export function FormSelect<TValues extends FieldValues, TContext, TTransformed>(
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent position='popper'>
+              {emptyOption && <SelectItem value={EMPTY_OPTION_VALUE}>{emptyOption}</SelectItem>}
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}

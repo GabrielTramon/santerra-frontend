@@ -1,45 +1,105 @@
-import { Gauge, House, type LucideIcon, Users } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  Contact,
+  Gauge,
+  House,
+  type LucideIcon,
+  Settings,
+  Tractor,
+  Users,
+} from 'lucide-react';
 
 export type NavItem = {
   title: string;
   href: string;
   icon: LucideIcon;
-  permission?: string;
+  permission?: string | string[];
 };
 
 export type NavGroup = {
-  label?: string;
+  title: string;
+  icon: LucideIcon;
   items: NavItem[];
+};
+
+export type NavEntry = NavItem | NavGroup;
+
+export type NavSection = {
+  label?: string;
+  entries: NavEntry[];
 };
 
 const HOME_HREF = '/admin';
 
-export const NAV_GROUPS: NavGroup[] = [
-  { items: [{ title: 'Início', href: HOME_HREF, icon: House }] },
+export const NAV_SECTIONS: NavSection[] = [
+  { entries: [{ title: 'Início', href: HOME_HREF, icon: House }] },
   {
-    label: 'Cadastros',
-    items: [{ title: 'Pessoas', href: '/admin/persons', icon: Users, permission: 'persons.read' }],
-  },
-  {
-    label: 'Configurações',
-    items: [
+    label: 'Módulos',
+    entries: [
       {
-        title: 'Potenciais',
-        href: '/admin/potentials',
-        icon: Gauge,
-        permission: 'potentials.read',
+        title: 'Entidades',
+        icon: Contact,
+        items: [
+          { title: 'Pessoas', href: '/admin/persons', icon: Users, permission: 'persons.read' },
+          {
+            title: 'Funcionários',
+            href: '/admin/employees',
+            icon: BriefcaseBusiness,
+            permission: ['persons.read', 'employees.read'],
+          },
+          {
+            title: 'Produtores',
+            href: '/admin/producers',
+            icon: Tractor,
+            permission: ['persons.read', 'producers.read'],
+          },
+        ],
+      },
+      {
+        title: 'Configurações',
+        icon: Settings,
+        items: [
+          {
+            title: 'Potenciais',
+            href: '/admin/potentials',
+            icon: Gauge,
+            permission: 'potentials.read',
+          },
+        ],
       },
     ],
   },
 ];
 
-export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+export function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return 'items' in entry;
+}
 
-export function getVisibleNavGroups(permissions: string[]): NavGroup[] {
-  return NAV_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => !item.permission || permissions.includes(item.permission)),
-  })).filter((group) => group.items.length > 0);
+export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((section) =>
+  section.entries.flatMap((entry) => (isNavGroup(entry) ? entry.items : [entry])),
+);
+
+function hasEveryPermission(granted: string[], required: NavItem['permission']): boolean {
+  return [required ?? []].flat().every((permission) => granted.includes(permission));
+}
+
+function getVisibleEntry(entry: NavEntry, permissions: string[]): NavEntry | null {
+  if (!isNavGroup(entry)) {
+    return hasEveryPermission(permissions, entry.permission) ? entry : null;
+  }
+
+  const items = entry.items.filter((item) => hasEveryPermission(permissions, item.permission));
+
+  return items.length > 0 ? { ...entry, items } : null;
+}
+
+export function getVisibleNavSections(permissions: string[]): NavSection[] {
+  return NAV_SECTIONS.map((section) => ({
+    ...section,
+    entries: section.entries
+      .map((entry) => getVisibleEntry(entry, permissions))
+      .filter((entry) => entry !== null),
+  })).filter((section) => section.entries.length > 0);
 }
 
 export function isNavItemActive(pathname: string, href: string): boolean {
@@ -48,4 +108,8 @@ export function isNavItemActive(pathname: string, href: string): boolean {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function isNavGroupActive(pathname: string, group: NavGroup): boolean {
+  return group.items.some((item) => isNavItemActive(pathname, item.href));
 }
