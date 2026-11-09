@@ -1,26 +1,39 @@
 import type { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import type { SessionCompany } from '@/types/next-auth';
 
-import { ApiError, apiRequest } from './api';
+import { ApiError, apiRequest, isApiErrorWithStatus } from './api';
 import { LOGIN_ERRORS, type LoginErrorCode } from './auth-errors';
 
 const SESSION_MAX_AGE_IN_SECONDS = 24 * 60 * 60;
+const SESSION_REFRESH_INTERVAL_MS = 2 * 60 * 1000;
+const SESSION_ENDED_ERROR = 'SESSION_ENDED';
+
+type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  isPlatformAdmin: boolean;
+};
 
 type LoginResponse = {
   token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user: SessionUser;
   companies: SessionCompany[];
 };
 
 type SelectCompanyResponse = {
   token: string;
   company: SessionCompany;
+  permissions: string[];
+};
+
+type SessionStateResponse = {
+  user: SessionUser;
+  companies: SessionCompany[];
+  currentCompanyId: string | null;
   permissions: string[];
 };
 
@@ -81,6 +94,32 @@ async function selectCompany(accessToken: string, companyId: string): Promise<Co
   };
 }
 
+async function fetchSessionState(accessToken: string): Promise<SessionStateResponse | null> {
+  try {
+    return await apiRequest<SessionStateResponse>('/auth/me', { token: accessToken });
+  } catch (error) {
+    if (isApiErrorWithStatus(error, 401)) {
+      throw new Error(SESSION_ENDED_ERROR);
+    }
+
+    return null;
+  }
+}
+
+function applySessionState(token: JWT, state: SessionStateResponse): void {
+  token.name = state.user.name;
+  token.email = state.user.email;
+  token.isPlatformAdmin = state.user.isPlatformAdmin;
+  token.companies = state.companies;
+  token.company = state.companies.find((company) => company.id === state.currentCompanyId) ?? null;
+  token.permissions = state.permissions;
+  token.sessionCheckedAt = Date.now();
+}
+
+function isSessionStale(token: JWT): boolean {
+  return Date.now() - (token.sessionCheckedAt ?? 0) >= SESSION_REFRESH_INTERVAL_MS;
+}
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
@@ -90,6 +129,15 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
     error: '/auth/login',
+  },
+  logger: {
+    error(code, metadata) {
+      if (metadata instanceof Error && metadata.message === SESSION_ENDED_ERROR) {
+        return;
+      }
+
+      console.error(`[next-auth][error][${code}]`, metadata);
+    },
   },
   providers: [
     CredentialsProvider({
@@ -130,6 +178,7 @@ export const authOptions: NextAuthOptions = {
           id: login.user.id,
           name: login.user.name,
           email: login.user.email,
+          isPlatformAdmin: login.user.isPlatformAdmin,
           companies: login.companies,
           ...access,
         };
@@ -145,6 +194,10 @@ export const authOptions: NextAuthOptions = {
         token.company = user.company;
         token.companies = user.companies;
         token.permissions = user.permissions;
+        token.isPlatformAdmin = user.isPlatformAdmin;
+        token.sessionCheckedAt = Date.now();
+
+        return token;
       }
 
       if (trigger === 'update' && typeof session?.companyId === 'string') {
@@ -152,6 +205,14 @@ export const authOptions: NextAuthOptions = {
 
         if (access) {
           Object.assign(token, access);
+        }
+      }
+
+      if (trigger === 'update' || isSessionStale(token)) {
+        const state = await fetchSessionState(token.accessToken);
+
+        if (state) {
+          applySessionState(token, state);
         }
       }
 
@@ -167,6 +228,7 @@ export const authOptions: NextAuthOptions = {
       session.company = token.company;
       session.companies = token.companies;
       session.permissions = token.permissions;
+      session.isPlatformAdmin = token.isPlatformAdmin ?? false;
 
       return session;
     },

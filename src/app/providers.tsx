@@ -6,6 +6,8 @@ import { ThemeProvider } from 'next-themes';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+const SESSION_REFETCH_INTERVAL_IN_SECONDS = 60;
+
 export default function Providers({
   children,
 }: {
@@ -14,7 +16,7 @@ export default function Providers({
   const pathname = usePathname();
 
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={SESSION_REFETCH_INTERVAL_IN_SECONDS}>
       <ThemeProvider
         attribute='class'
         defaultTheme='light'

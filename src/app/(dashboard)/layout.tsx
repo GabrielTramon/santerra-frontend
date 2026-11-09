@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 
 import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
+import { SessionWatcher } from '@/components/layout/session-watcher';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { requireSession } from '@/lib/session';
 
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider defaultOpen={cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== 'false'}>
+      <SessionWatcher />
       <AppSidebar companyName={companyName} permissions={session.permissions} />
       <SidebarInset>
         <AppHeader

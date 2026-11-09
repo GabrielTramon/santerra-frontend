@@ -1,5 +1,7 @@
 export const DEFAULT_CALLBACK_URL = '/admin';
 
+export const SESSION_ENDED_PATH = '/auth/session-ended';
+
 export function getSafeCallbackUrl(value: unknown): string {
   if (
     typeof value !== 'string' ||

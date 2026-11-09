@@ -2,7 +2,7 @@
 
 import { ArrowLeftRight, Building2, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -40,7 +40,13 @@ type UserMenuProps = {
   canSwitchCompany: boolean;
 };
 
-export function UserMenu({ userName, email, companyName, canSwitchCompany }: UserMenuProps) {
+export function UserMenu(props: UserMenuProps) {
+  const { data: session } = useSession();
+  const userName = session?.user.name ?? props.userName;
+  const email = session?.user.email ?? props.email;
+  const companyName = session?.company?.name ?? props.companyName;
+  const canSwitchCompany = session ? session.companies.length > 1 : props.canSwitchCompany;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
