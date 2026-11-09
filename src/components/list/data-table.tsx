@@ -41,7 +41,7 @@ type DataTableProps<T extends { id: string }> = {
   };
   columns: DataTableColumn<T>[];
   actions: {
-    canUpdate: boolean;
+    canUpdate: boolean | ((row: T) => boolean);
     deleteDialog?: (row: T) => DeleteDialogOptions | undefined;
   };
   emptyState: ReactNode;
@@ -128,7 +128,11 @@ export function DataTable<T extends { id: string }>({
                   <RowActions
                     label={title}
                     href={href}
-                    canUpdate={actions.canUpdate}
+                    canUpdate={
+                      typeof actions.canUpdate === 'function'
+                        ? actions.canUpdate(row)
+                        : actions.canUpdate
+                    }
                     deleteDialog={actions.deleteDialog?.(row)}
                   />
                 </TableCell>
