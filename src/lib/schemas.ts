@@ -21,6 +21,11 @@ export const optionalNationalIdSchema = z
   )
   .transform(digitsOrNull);
 
+export const optionalCnpjSchema = z
+  .string()
+  .refine((value) => [0, 14].includes(onlyDigits(value).length), 'Informe o CNPJ com 14 dígitos')
+  .transform(digitsOrNull);
+
 export const optionalPhoneSchema = z
   .string()
   .refine((value) => [0, 10, 11].includes(onlyDigits(value).length), 'Informe o telefone com DDD')

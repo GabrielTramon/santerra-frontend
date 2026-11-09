@@ -81,12 +81,14 @@ function applyMask(digits: string, groups: number[], separators: string[]): stri
   return masked;
 }
 
+export function maskCnpj(value: string): string {
+  return applyMask(onlyDigits(value).slice(0, 14), [2, 3, 3, 4, 2], ['.', '.', '/', '-']);
+}
+
 export function maskNationalId(value: string): string {
   const digits = onlyDigits(value).slice(0, 14);
 
-  return digits.length <= 11
-    ? applyMask(digits, [3, 3, 3, 2], ['.', '.', '-'])
-    : applyMask(digits, [2, 3, 3, 4, 2], ['.', '.', '/', '-']);
+  return digits.length <= 11 ? applyMask(digits, [3, 3, 3, 2], ['.', '.', '-']) : maskCnpj(digits);
 }
 
 export function maskPhone(value: string): string {

@@ -9,6 +9,7 @@ import {
   Layers,
   type LucideIcon,
   Settings,
+  Store,
   Tractor,
   Users,
 } from 'lucide-react';
@@ -56,6 +57,12 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/admin/producers',
             icon: Tractor,
             permission: ['persons.read', 'producers.read'],
+          },
+          {
+            title: 'Revendas',
+            href: '/admin/resellers',
+            icon: Store,
+            permission: 'resellers.read',
           },
         ],
       },
