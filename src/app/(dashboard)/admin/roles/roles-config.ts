@@ -1,8 +1,6 @@
 import type { DeleteDialogTexts } from '@/components/crud/confirm-delete-dialog';
 import type { ListEmptyStateTexts } from '@/components/list/list-empty-state';
 import type { FilterDefinition } from '@/lib/list-filters';
-import { getPermissionNames } from '@/lib/permissions';
-import type { Permission } from '@/types/permission';
 
 export const ROLE_FILTERS: FilterDefinition[] = [
   { type: 'dateRange', label: 'Data de cadastro', fromKey: 'createdFrom', toKey: 'createdTo' },
@@ -27,13 +25,3 @@ export const ROLE_DELETE_TEXTS: DeleteDialogTexts = {
 
 export const OUT_OF_SCOPE_DESCRIPTION =
   'Este cargo tem permissões que você não tem, então você só pode visualizá-lo. Só quem tem todas elas pode editá-lo ou excluí-lo.';
-
-export function canManageRole(
-  permissionIds: string[],
-  permissions: Permission[],
-  grantedPermissions: string[],
-): boolean {
-  return getPermissionNames(permissionIds, permissions).every((name) =>
-    grantedPermissions.includes(name),
-  );
-}

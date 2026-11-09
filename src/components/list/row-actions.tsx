@@ -58,7 +58,7 @@ export function RowActions({ label, href, canUpdate, deleteDialog }: RowActionsP
               <DropdownMenuSeparator />
               <DropdownMenuItem variant='destructive' onSelect={() => setIsDeleteOpen(true)}>
                 <Trash2 />
-                Excluir
+                {deleteDialog.actionLabel ?? 'Excluir'}
               </DropdownMenuItem>
             </>
           )}

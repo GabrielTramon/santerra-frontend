@@ -13,6 +13,7 @@ import {
   Store,
   Tractor,
   Users,
+  UsersRound,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -100,6 +101,12 @@ export const NAV_SECTIONS: NavSection[] = [
             href: '/admin/potentials',
             icon: Gauge,
             permission: 'potentials.read',
+          },
+          {
+            title: 'Equipe',
+            href: '/admin/members',
+            icon: UsersRound,
+            permission: 'members.read',
           },
           {
             title: 'Cargos',

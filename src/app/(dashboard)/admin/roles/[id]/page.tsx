@@ -8,7 +8,7 @@ import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { apiRequest, getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
 import { formatDate } from '@/lib/format';
-import { formatPermissionsCount } from '@/lib/permissions';
+import { formatPermissionsCount, hasAllPermissions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Permission } from '@/types/permission';
@@ -16,7 +16,7 @@ import type { Role } from '@/types/role';
 
 import { PermissionMatrix } from '../permission-matrix';
 import RoleForm from '../role-form';
-import { canManageRole, OUT_OF_SCOPE_DESCRIPTION, ROLE_DELETE_TEXTS } from '../roles-config';
+import { OUT_OF_SCOPE_DESCRIPTION, ROLE_DELETE_TEXTS } from '../roles-config';
 
 type RolePageProps = {
   params: Promise<{ id: string }>;
@@ -46,7 +46,7 @@ export default async function RolePage({ params }: RolePageProps) {
     getRole(id, session.accessToken),
     apiRequest<Paginated<Permission>>('/permissions?limit=100', { token: session.accessToken }),
   ]);
-  const isManageable = canManageRole(role.permissionIds, permissions.data, session.permissions);
+  const isManageable = hasAllPermissions(role.permissionIds, permissions.data, session.permissions);
   const hasUpdatePermission = hasPermission(session, 'roles.update');
   const canUpdate = hasUpdatePermission && isManageable;
   const canDelete = hasPermission(session, 'roles.delete') && isManageable;

@@ -69,6 +69,16 @@ export function getPermissionNames(permissionIds: string[], permissions: Permiss
   return permissions.filter((permission) => ids.has(permission.id)).map(({ name }) => name);
 }
 
+export function hasAllPermissions(
+  permissionIds: string[],
+  permissions: Permission[],
+  grantedPermissions: string[],
+): boolean {
+  return getPermissionNames(permissionIds, permissions).every((name) =>
+    grantedPermissions.includes(name),
+  );
+}
+
 export function formatPermissionsCount(count: number): string {
   if (count === 0) {
     return 'Nenhuma permissão';

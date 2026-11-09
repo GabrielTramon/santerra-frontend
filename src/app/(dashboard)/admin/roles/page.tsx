@@ -12,12 +12,13 @@ import { apiRequest } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { parseFilters, toApiFilters } from '@/lib/list-filters';
 import { buildApiListQuery, buildListHref, parseListParams } from '@/lib/list-params';
+import { hasAllPermissions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { Permission } from '@/types/permission';
 import type { RoleListItem } from '@/types/role';
 
-import { canManageRole, ROLE_DELETE_TEXTS, ROLE_EMPTY_TEXTS, ROLE_FILTERS } from './roles-config';
+import { ROLE_DELETE_TEXTS, ROLE_EMPTY_TEXTS, ROLE_FILTERS } from './roles-config';
 
 export const metadata: Metadata = {
   title: 'Cargos',
@@ -50,7 +51,7 @@ export default async function RolesPage({ searchParams }: RolesPageProps) {
   const canUpdate = hasPermission(session, 'roles.update');
   const canDelete = hasPermission(session, 'roles.delete');
   const isManageable = (role: RoleListItem) =>
-    canManageRole(role.permissionIds, permissions.data, session.permissions);
+    hasAllPermissions(role.permissionIds, permissions.data, session.permissions);
   const createAction = hasPermission(session, 'roles.create') && (
     <Button href='/admin/roles/new'>
       <Plus />
