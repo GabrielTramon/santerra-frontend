@@ -159,10 +159,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error(toLoginErrorCode(error, LOGIN_ERRORS.INACTIVE_USER));
         });
 
-        if (login.companies.length === 0) {
-          throw new Error(LOGIN_ERRORS.NO_COMPANY);
-        }
-
         const preferredCompany = login.companies.find(
           (company) => company.id === credentials.companyId,
         );

@@ -28,6 +28,7 @@ export type DataTableColumn<T> = {
   header: string;
   cell: (row: T) => ReactNode;
   visibleFrom?: keyof typeof VISIBLE_FROM;
+  align?: 'end';
 };
 
 type DataTableProps<T extends { id: string }> = {
@@ -72,6 +73,7 @@ export function DataTable<T extends { id: string }>({
                 key={column.header}
                 className={cn(
                   'px-4 text-muted-foreground',
+                  column.align === 'end' && 'text-right',
                   column.visibleFrom && VISIBLE_FROM[column.visibleFrom],
                 )}
               >
@@ -121,6 +123,7 @@ export function DataTable<T extends { id: string }>({
                     key={column.header}
                     className={cn(
                       'px-4 py-3 text-muted-foreground tabular-nums',
+                      column.align === 'end' && 'text-right',
                       column.visibleFrom && VISIBLE_FROM[column.visibleFrom],
                     )}
                   >

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftRight, Building2, LogOut, UserRound } from 'lucide-react';
+import { ArrowLeftRight, Building2, LogOut, Plus, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 
@@ -44,7 +44,8 @@ export function UserMenu(props: UserMenuProps) {
   const { data: session } = useSession();
   const userName = session?.user.name ?? props.userName;
   const email = session?.user.email ?? props.email;
-  const companyName = session?.company?.name ?? props.companyName;
+  const companyName =
+    session?.company?.name ?? (props.companyName || 'Nenhuma empresa selecionada');
   const canSwitchCompany = session ? session.companies.length > 1 : props.canSwitchCompany;
 
   return (
@@ -85,6 +86,13 @@ export function UserMenu(props: UserMenuProps) {
             </Link>
           </DropdownMenuItem>
         )}
+
+        <DropdownMenuItem asChild>
+          <Link href='/auth/create-company'>
+            <Plus />
+            Criar nova empresa
+          </Link>
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 

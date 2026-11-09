@@ -79,6 +79,22 @@ export function hasAllPermissions(
   );
 }
 
+export type AttachmentPermissions = {
+  canUpload: boolean;
+  canRemove: boolean;
+};
+
+export function getAttachmentPermissions(permissions: string[]): AttachmentPermissions | null {
+  if (!permissions.includes('files.read')) {
+    return null;
+  }
+
+  return {
+    canUpload: permissions.includes('files.create'),
+    canRemove: permissions.includes('files.delete'),
+  };
+}
+
 export function formatPermissionsCount(count: number): string {
   if (count === 0) {
     return 'Nenhuma permissão';

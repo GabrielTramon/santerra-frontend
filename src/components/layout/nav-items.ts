@@ -1,19 +1,23 @@
 import {
   Boxes,
   BriefcaseBusiness,
+  Building2,
   CalendarDays,
   Contact,
+  Factory,
   Gauge,
   Handshake,
   House,
   Layers,
   type LucideIcon,
+  Package,
   Settings,
   ShieldCheck,
   Store,
   Tractor,
   Users,
   UsersRound,
+  Wheat,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -33,6 +37,7 @@ export type NavEntry = NavItem | NavGroup;
 
 export type NavSection = {
   label?: string;
+  platformOnly?: boolean;
   entries: NavEntry[];
 };
 
@@ -85,6 +90,12 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: Boxes,
         items: [
           {
+            title: 'Produtos',
+            href: '/admin/products',
+            icon: Package,
+            permission: 'products.read',
+          },
+          {
             title: 'Grupos de produtos',
             href: '/admin/groups',
             icon: Layers,
@@ -114,8 +125,22 @@ export const NAV_SECTIONS: NavSection[] = [
             icon: ShieldCheck,
             permission: 'roles.read',
           },
+          {
+            title: 'Empresa',
+            href: '/admin/company',
+            icon: Building2,
+            permission: 'company.update',
+          },
         ],
       },
+    ],
+  },
+  {
+    label: 'Plataforma',
+    platformOnly: true,
+    entries: [
+      { title: 'Fabricantes', href: '/admin/platform/manufacturers', icon: Factory },
+      { title: 'Culturas', href: '/admin/platform/harvests', icon: Wheat },
     ],
   },
 ];
@@ -142,13 +167,18 @@ function getVisibleEntry(entry: NavEntry, permissions: string[]): NavEntry | nul
   return items.length > 0 ? { ...entry, items } : null;
 }
 
-export function getVisibleNavSections(permissions: string[]): NavSection[] {
-  return NAV_SECTIONS.map((section) => ({
-    ...section,
-    entries: section.entries
-      .map((entry) => getVisibleEntry(entry, permissions))
-      .filter((entry) => entry !== null),
-  })).filter((section) => section.entries.length > 0);
+export function getVisibleNavSections(
+  permissions: string[],
+  isPlatformAdmin: boolean,
+): NavSection[] {
+  return NAV_SECTIONS.filter((section) => !section.platformOnly || isPlatformAdmin)
+    .map((section) => ({
+      ...section,
+      entries: section.entries
+        .map((entry) => getVisibleEntry(entry, permissions))
+        .filter((entry) => entry !== null),
+    }))
+    .filter((section) => section.entries.length > 0);
 }
 
 export function isNavItemActive(pathname: string, href: string): boolean {

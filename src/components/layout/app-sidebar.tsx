@@ -180,14 +180,18 @@ type GroupToggle = {
 type AppSidebarProps = {
   companyName: string;
   permissions: string[];
+  isPlatformAdmin: boolean;
 };
 
-export function AppSidebar({ companyName, permissions }: AppSidebarProps) {
+export function AppSidebar({ companyName, permissions, isPlatformAdmin }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isMobile, setOpenMobile, state } = useSidebar();
   const [groupToggles, setGroupToggles] = useState<Record<string, GroupToggle>>({});
-  const sections = getVisibleNavSections(session?.permissions ?? permissions);
+  const sections = getVisibleNavSections(
+    session?.permissions ?? permissions,
+    session?.isPlatformAdmin ?? isPlatformAdmin,
+  );
   const currentCompanyName = session?.company?.name ?? companyName;
   const showsOnlyIcons = state === 'collapsed' && !isMobile;
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { onlyDigits, parseDecimal, toDayBoundary } from './format';
+import { onlyDigits, parseDecimal, parseMoney, toDayBoundary } from './format';
 import { MIN_PASSWORD_LENGTH } from './password';
 
 export const emailSchema = z
@@ -43,6 +43,17 @@ export const optionalTextSchema = z
   .transform((value) => value || null);
 
 export const optionalDecimalSchema = z.string().transform(parseDecimal);
+
+export const optionalMoneySchema = z.string().transform(parseMoney);
+
+export const storedFilesSchema = z.array(
+  z.object({
+    id: z.string(),
+    originalName: z.string().nullable(),
+    mimeType: z.string(),
+    size: z.number(),
+  }),
+);
 
 export const optionalDateSchema = z
   .string()

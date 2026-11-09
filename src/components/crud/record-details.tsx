@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn';
 
 type RecordDetailsField = {
   label: string;
-  value?: string | null;
+  value?: ReactNode;
   wide?: boolean;
 };
 
