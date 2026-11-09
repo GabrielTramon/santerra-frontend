@@ -32,7 +32,7 @@ export type DataTableColumn<T> = {
 
 type DataTableProps<T extends { id: string }> = {
   rows: T[];
-  rowHref: (row: T) => string;
+  rowHref?: (row: T) => string;
   primary: {
     header: string;
     title: (row: T) => string;
@@ -84,11 +84,10 @@ export function DataTable<T extends { id: string }>({
 
         <TableBody>
           {rows.map((row) => {
-            const href = rowHref(row);
+            const href = rowHref?.(row);
             const title = primary.title(row);
-
-            return (
-              <TableRowLink key={row.id} href={href}>
+            const cells = (
+              <>
                 <TableCell className='w-full max-w-0 px-4 py-3'>
                   <div className='flex items-center gap-3'>
                     {primary.avatar && (
@@ -99,12 +98,16 @@ export function DataTable<T extends { id: string }>({
                       </Avatar>
                     )}
                     <div className='min-w-0'>
-                      <Link
-                        href={href}
-                        className='block truncate rounded-sm font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50'
-                      >
-                        {title}
-                      </Link>
+                      {href ? (
+                        <Link
+                          href={href}
+                          className='block truncate rounded-sm font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50'
+                        >
+                          {title}
+                        </Link>
+                      ) : (
+                        <p className='truncate font-medium text-foreground'>{title}</p>
+                      )}
                       {primary.subtitle && (
                         <p className='truncate text-xs text-muted-foreground'>
                           {primary.subtitle(row)}
@@ -136,7 +139,15 @@ export function DataTable<T extends { id: string }>({
                     deleteDialog={actions.deleteDialog?.(row)}
                   />
                 </TableCell>
+              </>
+            );
+
+            return href ? (
+              <TableRowLink key={row.id} href={href}>
+                {cells}
               </TableRowLink>
+            ) : (
+              <TableRow key={row.id}>{cells}</TableRow>
             );
           })}
         </TableBody>

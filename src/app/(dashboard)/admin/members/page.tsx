@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { PageHeader } from '@/components/layout/page-header';
+import { PageTabs } from '@/components/layout/page-tabs';
 import { BadgeList } from '@/components/list/badge-list';
 import { DataTable } from '@/components/list/data-table';
 import { ListEmptyState } from '@/components/list/list-empty-state';
@@ -19,11 +20,14 @@ import type { MemberDetails } from '@/types/member';
 import type { Permission } from '@/types/permission';
 import type { Role } from '@/types/role';
 
+import { InviteMemberDialog } from './invite-member-dialog';
 import {
   getMemberFilters,
   getMemberReadOnlyReason,
   getMemberRemoveTexts,
   getRoleNames,
+  getRoleOptions,
+  getTeamTabs,
   MEMBER_EMPTY_TEXTS,
 } from './members-config';
 
@@ -66,6 +70,12 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const canDelete = hasPermission(session, 'members.delete');
   const isReadOnly = (member: MemberDetails) =>
     getMemberReadOnlyReason(member, session, roles?.data ?? null, permissions.data) !== null;
+  const tabs = getTeamTabs(session);
+  const inviteAction = hasPermission(session, 'invitations.create') && (
+    <InviteMemberDialog
+      roleOptions={getRoleOptions(roles?.data ?? null, permissions.data, session.permissions)}
+    />
+  );
 
   return (
     <div className='flex flex-col gap-6'>
@@ -73,9 +83,12 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         icon={UsersRound}
         title='Equipe'
         description='Veja quem faz parte da empresa, ative ou desative o acesso e escolha os cargos.'
+        actions={inviteAction}
         searchPlaceholder='Buscar por nome ou e-mail'
         filters={<ListFilters filters={filterDefinitions} values={filters} />}
       />
+
+      {tabs && <PageTabs label='Seções da equipe' tabs={tabs} />}
 
       <DataTable
         rows={members.data}
@@ -137,6 +150,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
             pathname='/admin/members'
             searchTerm={searchTerm}
             hasFilters={Object.values(filters).some(Boolean)}
+            createAction={inviteAction}
             texts={MEMBER_EMPTY_TEXTS}
           />
         }

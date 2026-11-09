@@ -7,13 +7,15 @@ import { DEFAULT_CALLBACK_URL } from '@/lib/callback-url';
 type LoginCredentials = {
   email: string;
   password: string;
+  companyId?: string;
 };
 
 export function useLogin() {
-  return useMutation(async ({ email, password }: LoginCredentials) => {
+  return useMutation(async ({ email, password, companyId }: LoginCredentials) => {
     const result = await signIn('credentials', {
       email,
       password,
+      ...(companyId && { companyId }),
       redirect: false,
       callbackUrl: DEFAULT_CALLBACK_URL,
     });

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { apiRequest, getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
 import { formatDate } from '@/lib/format';
-import { hasAllPermissions } from '@/lib/permissions';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { MemberDetails } from '@/types/member';
@@ -18,9 +17,12 @@ import type { Permission } from '@/types/permission';
 import type { Role } from '@/types/role';
 
 import MemberForm from '../member-form';
-import { getMemberReadOnlyReason, getMemberRemoveTexts, getRoleNames } from '../members-config';
-
-const ROLE_OUT_OF_SCOPE_DESCRIPTION = 'Tem permissões que você não tem, então você não pode atribuí-lo.';
+import {
+  getMemberReadOnlyReason,
+  getMemberRemoveTexts,
+  getRoleNames,
+  getRoleOptions,
+} from '../members-config';
 
 type MemberPageProps = {
   params: Promise<{ id: string }>;
@@ -63,18 +65,7 @@ export default async function MemberPage({ params }: MemberPageProps) {
   const hasUpdatePermission = hasPermission(session, 'members.update');
   const canUpdate = hasUpdatePermission && !readOnlyReason;
   const canRemove = hasPermission(session, 'members.delete') && !readOnlyReason;
-  const roleOptions = roles
-    ? roles.data.map((role) => {
-        const isGrantable = hasAllPermissions(role.permissionIds, permissions.data, session.permissions);
-
-        return {
-          value: role.id,
-          label: role.name,
-          description: isGrantable ? role.description : ROLE_OUT_OF_SCOPE_DESCRIPTION,
-          disabled: !isGrantable,
-        };
-      })
-    : null;
+  const roleOptions = getRoleOptions(roles?.data ?? null, permissions.data, session.permissions);
   const status = [member.active ? 'Ativo' : 'Inativo', member.isOwner && 'Dono']
     .filter(Boolean)
     .join(' · ');

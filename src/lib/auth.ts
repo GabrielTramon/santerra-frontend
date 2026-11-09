@@ -145,6 +145,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'E-mail', type: 'email' },
         password: { label: 'Senha', type: 'password' },
+        companyId: { label: 'Empresa', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
@@ -162,12 +163,16 @@ export const authOptions: NextAuthOptions = {
           throw new Error(LOGIN_ERRORS.NO_COMPANY);
         }
 
-        const access =
-          login.companies.length === 1
-            ? await selectCompany(login.token, login.companies[0].id).catch((error: unknown) => {
-                throw new Error(toLoginErrorCode(error, LOGIN_ERRORS.NO_COMPANY));
-              })
-            : {
+        const preferredCompany = login.companies.find(
+          (company) => company.id === credentials.companyId,
+        );
+        const companyToSelect =
+          preferredCompany ?? (login.companies.length === 1 ? login.companies[0] : null);
+        const access = companyToSelect
+          ? await selectCompany(login.token, companyToSelect.id).catch((error: unknown) => {
+              throw new Error(toLoginErrorCode(error, LOGIN_ERRORS.NO_COMPANY));
+            })
+          : {
                 accessToken: login.token,
                 accessTokenExpires: getTokenExpiration(login.token),
                 company: null,
