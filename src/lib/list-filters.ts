@@ -1,3 +1,4 @@
+import type { ComboboxOption, ComboboxSourceKey } from './combobox-sources';
 import { toDayBoundary } from './format';
 import { getSearchParam, isIsoDate, type SearchParams } from './list-params';
 
@@ -12,7 +13,14 @@ export type FilterDefinition =
   | { type: 'select'; key: string; label: string; options: FilterOption[] }
   | { type: 'checkboxes'; key: string; label: string; options: FilterOption[] }
   | { type: 'dateRange'; label: string; fromKey: string; toKey: string }
-  | { type: 'moneyRange'; label: string; fromKey: string; toKey: string };
+  | { type: 'moneyRange'; label: string; fromKey: string; toKey: string }
+  | {
+      type: 'search';
+      key: string;
+      label: string;
+      source: ComboboxSourceKey;
+      selected: ComboboxOption | null;
+    };
 
 export type RangeFilterDefinition = Extract<FilterDefinition, { fromKey: string }>;
 
@@ -42,6 +50,10 @@ function parseFilter(searchParams: SearchParams, filter: FilterDefinition): [str
   }
 
   const value = getSearchParam(searchParams, filter.key);
+
+  if (filter.type === 'search') {
+    return [[filter.key, filter.selected?.value === value ? value : '']];
+  }
 
   if (filter.type === 'select') {
     return [[filter.key, filter.options.some((option) => option.value === value) ? value : '']];

@@ -10,6 +10,8 @@ import {
   House,
   Layers,
   type LucideIcon,
+  MapPin,
+  Megaphone,
   Package,
   Settings,
   ShieldCheck,
@@ -17,6 +19,7 @@ import {
   Tractor,
   Users,
   UsersRound,
+  Wallet,
   Wheat,
 } from 'lucide-react';
 
@@ -78,10 +81,28 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: Handshake,
         items: [
           {
+            title: 'Visitas',
+            href: '/admin/commercial-trips',
+            icon: MapPin,
+            permission: 'commercial-trips.read',
+          },
+          {
+            title: 'Ações comerciais',
+            href: '/admin/commercial-actions',
+            icon: Megaphone,
+            permission: 'commercial-actions.read',
+          },
+          {
             title: 'Eventos',
             href: '/admin/events',
             icon: CalendarDays,
             permission: 'events.read',
+          },
+          {
+            title: 'Carteiras',
+            href: '/admin/wallets',
+            icon: Wallet,
+            permission: 'wallets.read',
           },
         ],
       },

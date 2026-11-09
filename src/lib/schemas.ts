@@ -46,6 +46,23 @@ export const optionalDecimalSchema = z.string().transform(parseDecimal);
 
 export const optionalMoneySchema = z.string().transform(parseMoney);
 
+export const comboboxOptionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+  description: z.string().optional(),
+});
+
+export function requiredOptionSchema(message: string) {
+  return comboboxOptionSchema
+    .nullable()
+    .refine((option) => option !== null, message)
+    .transform((option) => option?.value ?? '');
+}
+
+export const optionIdsSchema = z
+  .array(comboboxOptionSchema)
+  .transform((options) => options.map((option) => option.value));
+
 export const storedFilesSchema = z.array(
   z.object({
     id: z.string(),

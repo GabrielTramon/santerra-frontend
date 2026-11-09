@@ -4,10 +4,12 @@ import { Funnel } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useState, useTransition } from 'react';
 
+import { AsyncCombobox } from '@/components/form/async-combobox';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import {
   Popover,
   PopoverContent,
@@ -21,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MoneyInput } from '@/components/ui/money-input';
 import { Spinner } from '@/components/ui/spinner';
+import type { ComboboxOption } from '@/lib/combobox-sources';
 import { toMoneyInputValue, toMoneyParam } from '@/lib/format';
 import {
   type FilterDefinition,
@@ -40,6 +42,31 @@ type FilterFieldProps = {
   values: FilterValues;
   onChange: (key: string, value: string) => void;
 };
+
+type SearchFilterFieldProps = Omit<FilterFieldProps, 'filter'> & {
+  filter: Extract<FilterDefinition, { type: 'search' }>;
+};
+
+function SearchFilterField({ filter, values, onChange }: SearchFilterFieldProps) {
+  const [selected, setSelected] = useState<ComboboxOption | null>(filter.selected);
+  const id = `filter-${filter.key}`;
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{filter.label}</FieldLabel>
+      <AsyncCombobox
+        id={id}
+        source={filter.source}
+        value={values[filter.key] && selected ? [selected] : []}
+        emptyOption='Todos'
+        onChange={(next) => {
+          setSelected(next[0] ?? null);
+          onChange(filter.key, next[0]?.value ?? '');
+        }}
+      />
+    </Field>
+  );
+}
 
 type RangeFilterFieldProps = Omit<FilterFieldProps, 'filter'> & {
   filter: RangeFilterDefinition;
@@ -119,6 +146,10 @@ function FilterField({ filter, values, onChange }: FilterFieldProps) {
 
   if (isRangeFilter(filter)) {
     return <RangeFilterField filter={filter} values={values} onChange={onChange} />;
+  }
+
+  if (filter.type === 'search') {
+    return <SearchFilterField filter={filter} values={values} onChange={onChange} />;
   }
 
   const { key, options } = filter;

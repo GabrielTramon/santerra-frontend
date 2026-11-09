@@ -1,4 +1,4 @@
-import { ExternalLink, UsersRound } from 'lucide-react';
+import { ExternalLink, Plus, UsersRound } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 
@@ -9,12 +9,13 @@ import { RecordPageLayout } from '@/components/layout/record-page-layout';
 import { Button } from '@/components/ui/button';
 import { apiRequest, getRecordOrNotFound } from '@/lib/api';
 import { authOptions } from '@/lib/auth';
-import { formatDate } from '@/lib/format';
+import { formatCurrency, formatDate } from '@/lib/format';
 import { hasPermission, requireSession } from '@/lib/session';
 import type { Paginated } from '@/types/api';
 import type { MemberDetails } from '@/types/member';
 import type { Permission } from '@/types/permission';
 import type { Role } from '@/types/role';
+import type { WalletListItem } from '@/types/wallet';
 
 import MemberForm from '../member-form';
 import {
@@ -49,13 +50,19 @@ export default async function MemberPage({ params }: MemberPageProps) {
   const session = await requireSession('members.read');
   const { id } = await params;
   const canReadRoles = hasPermission(session, 'roles.read');
-  const [member, roles, permissions] = await Promise.all([
+  const [member, roles, permissions, wallets] = await Promise.all([
     getMember(id, session.accessToken),
     canReadRoles
       ? apiRequest<Paginated<Role>>('/roles?limit=100', { token: session.accessToken })
       : null,
     apiRequest<Paginated<Permission>>('/permissions?limit=100', { token: session.accessToken }),
+    hasPermission(session, 'wallets.read')
+      ? apiRequest<Paginated<WalletListItem>>(`/wallets?userCompanyId=${id}&limit=1`, {
+          token: session.accessToken,
+        })
+      : null,
   ]);
+  const wallet = wallets?.data[0];
   const readOnlyReason = getMemberReadOnlyReason(
     member,
     session,
@@ -119,6 +126,33 @@ export default async function MemberPage({ params }: MemberPageProps) {
                 <ExternalLink />
                 Abrir funcionário
               </Button>
+            )
+          }
+        />
+      )}
+
+      {wallets && (
+        <ActionCard
+          title='Carteira'
+          description={
+            wallet
+              ? `Saldo de ${formatCurrency(wallet.value)} para as ações comerciais.`
+              : 'Este membro ainda não tem carteira para as ações comerciais.'
+          }
+          action={
+            wallet ? (
+              <Button href={`/admin/wallets/${wallet.id}`} variant='outline'>
+                <ExternalLink />
+                Abrir carteira
+              </Button>
+            ) : (
+              member.active &&
+              hasPermission(session, 'wallets.create') && (
+                <Button href={`/admin/wallets/new?member=${member.id}`} variant='outline'>
+                  <Plus />
+                  Criar carteira
+                </Button>
+              )
             )
           }
         />

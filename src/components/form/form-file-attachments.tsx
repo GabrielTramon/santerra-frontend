@@ -14,6 +14,7 @@ type FormFileAttachmentsProps<TValues extends FieldValues, TContext, TTransforme
   label: string;
   permissions: AttachmentPermissions;
   description?: ReactNode;
+  hideLabel?: boolean;
   onUploadingChange?: (isUploading: boolean) => void;
   className?: string;
 };
@@ -24,6 +25,7 @@ export function FormFileAttachments<TValues extends FieldValues, TContext, TTran
   label,
   permissions,
   description,
+  hideLabel = false,
   onUploadingChange,
   className,
 }: FormFileAttachmentsProps<TValues, TContext, TTransformed>) {
@@ -33,7 +35,9 @@ export function FormFileAttachments<TValues extends FieldValues, TContext, TTran
       control={control}
       render={({ field, fieldState }) => (
         <FieldSet className={className} data-invalid={fieldState.invalid}>
-          <FieldLegend variant='label'>{label}</FieldLegend>
+          <FieldLegend variant='label' className={hideLabel ? 'sr-only' : undefined}>
+            {label}
+          </FieldLegend>
           {description && <FieldDescription>{description}</FieldDescription>}
           <FileAttachments
             files={(field.value as StoredFile[] | undefined) ?? []}
