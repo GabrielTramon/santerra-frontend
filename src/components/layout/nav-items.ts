@@ -1,6 +1,7 @@
 import {
   Boxes,
   BriefcaseBusiness,
+  Building,
   Building2,
   CalendarDays,
   Contact,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   Store,
   Tractor,
+  UserCog,
   Users,
   UsersRound,
   Wallet,
@@ -160,6 +162,8 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Plataforma',
     platformOnly: true,
     entries: [
+      { title: 'Empresas', href: '/admin/platform/companies', icon: Building },
+      { title: 'Usuários', href: '/admin/platform/users', icon: UserCog },
       { title: 'Fabricantes', href: '/admin/platform/manufacturers', icon: Factory },
       { title: 'Culturas', href: '/admin/platform/harvests', icon: Wheat },
     ],
